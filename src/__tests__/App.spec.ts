@@ -1,11 +1,17 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
+import { CatalogOptionProvider, CatalogService, EnumOptionProvider } from '@/services/catalog'
+import { WineColor, enumLabels } from '@/domain/enums'
 
-import { mount } from '@vue/test-utils'
-import App from '../App.vue'
+describe('OptionProvider', () => {
+  it('načíta, zoradí a filtruje katalógové položky', () => {
+    const provider = new CatalogOptionProvider(new CatalogService(), 'container-types')
+    const options = provider.options()
+    expect(options).toHaveLength(6)
+    expect(options[0]).toMatchObject({ value: 'wood_barrel', label: 'Drevený sud' })
+  })
 
-describe('App', () => {
-  it('mounts renders properly', () => {
-    const wrapper = mount(App)
-    expect(wrapper.text()).toContain('You did it!')
+  it('vytvorí možnosti z typovo bezpečného enumu', () => {
+    const provider = new EnumOptionProvider(Object.values(WineColor), enumLabels.wineColor)
+    expect(provider.options()).toContainEqual({ value: 'red', label: 'Červené' })
   })
 })

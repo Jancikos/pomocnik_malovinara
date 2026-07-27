@@ -3,6 +3,18 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import './styles.css'
+
+import { registerSW } from 'virtual:pwa-register'
+
+registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    if (window.confirm('Je dostupná nová verzia aplikácie. Načítať ju teraz?')) {
+      window.location.reload()
+    }
+  },
+})
 
 const app = createApp(App)
 

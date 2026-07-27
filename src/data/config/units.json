@@ -1,0 +1,14 @@
+{
+  "catalog": "units",
+  "version": 1,
+  "items": [
+    { "code": "nm", "label": "°NM", "enabled": true, "sortOrder": 1 },
+    { "code": "g_l", "label": "g/l", "enabled": true, "sortOrder": 2 },
+    { "code": "mg_l", "label": "mg/l", "enabled": true, "sortOrder": 3 },
+    { "code": "celsius", "label": "°C", "enabled": true, "sortOrder": 4 },
+    { "code": "kg", "label": "kg", "enabled": true, "sortOrder": 5 },
+    { "code": "g", "label": "g", "enabled": true, "sortOrder": 6 },
+    { "code": "ml", "label": "ml", "enabled": true, "sortOrder": 7 },
+    { "code": "l", "label": "l", "enabled": true, "sortOrder": 8 }
+  ]
+}

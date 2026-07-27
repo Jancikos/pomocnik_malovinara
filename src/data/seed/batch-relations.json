@@ -1,0 +1,35 @@
+[
+  {
+    "id": "relation-1",
+    "wineId": "wine-rizling",
+    "sourceBatchId": "batch-old-1",
+    "targetBatchId": "batch-1",
+    "relationType": "split",
+    "transferredVolumeLiters": 460,
+    "lossLiters": 4,
+    "operationGroupId": "operation-split-1",
+    "createdAt": "2026-07-10T08:00:00.000Z"
+  },
+  {
+    "id": "relation-2",
+    "wineId": "wine-rizling",
+    "sourceBatchId": "batch-old-1",
+    "targetBatchId": "batch-5",
+    "relationType": "split",
+    "transferredVolumeLiters": 114,
+    "lossLiters": 0,
+    "operationGroupId": "operation-split-1",
+    "createdAt": "2026-07-10T08:00:00.000Z"
+  },
+  {
+    "id": "relation-3",
+    "wineId": "wine-frankovka",
+    "sourceBatchId": "batch-old-2",
+    "targetBatchId": "batch-2",
+    "relationType": "transfer",
+    "transferredVolumeLiters": 218,
+    "lossLiters": 2,
+    "operationGroupId": "operation-transfer-1",
+    "createdAt": "2026-06-20T08:00:00.000Z"
+  }
+]

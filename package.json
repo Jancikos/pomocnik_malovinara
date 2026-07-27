@@ -17,7 +17,11 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "dexie": "^4.4.4",
     "pinia": "^4.0.2",
+    "tailwindcss": "^4.3.3",
+    "vite-plugin-pwa": "^1.3.0",
     "vue": "^3.5.40",
     "vue-router": "^5.2.0"
   },
@@ -36,11 +40,13 @@
     "eslint-plugin-oxlint": "~1.73.0",
     "eslint-plugin-playwright": "^2.10.5",
     "eslint-plugin-vue": "~10.9.2",
+    "fake-indexeddb": "^6.2.5",
     "jiti": "^2.7.0",
     "jsdom": "^29.1.1",
     "npm-run-all2": "^9.0.2",
     "oxlint": "~1.73.0",
     "prettier": "3.9.5",
+    "sharp": "^0.35.3",
     "typescript": "~6.0.0",
     "vite": "^8.1.5",
     "vite-plugin-vue-devtools": "^8.1.5",

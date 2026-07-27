@@ -1,0 +1,10 @@
+{
+  "catalog": "clarity-ratings",
+  "version": 1,
+  "items": [
+    { "code": "crystal", "label": "Krištáľovo číre", "enabled": true, "sortOrder": 1 },
+    { "code": "clear", "label": "Číre", "enabled": true, "sortOrder": 2 },
+    { "code": "hazy", "label": "Mierne zakalené", "enabled": true, "sortOrder": 3 },
+    { "code": "cloudy", "label": "Zakalené", "enabled": true, "sortOrder": 4 }
+  ]
+}

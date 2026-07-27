@@ -1,0 +1,12 @@
+[
+  {
+    "id": "audit-1",
+    "entityType": "batch",
+    "entityId": "batch-1",
+    "action": "create",
+    "changedAt": "2026-07-10T08:00:00.000Z",
+    "changedFields": ["id", "container", "currentVolumeLiters"],
+    "after": { "code": "RV26-A", "containerLabel": "Tank A1" },
+    "syncStatus": "synced"
+  }
+]

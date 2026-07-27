@@ -1,0 +1,43 @@
+[
+  {
+    "id": "intervention-1",
+    "wineId": "wine-rizling",
+    "batchId": "batch-1",
+    "type": "nutrition",
+    "performedAt": "2026-07-22T14:00:00.000Z",
+    "substance": "Výživa pre kvasinky",
+    "amount": 80,
+    "amountUnit": "g",
+    "notes": "Pridané počas aktívneho kvasenia.",
+    "createdAt": "2026-07-22T14:00:00.000Z",
+    "updatedAt": "2026-07-22T14:00:00.000Z",
+    "syncStatus": "synced"
+  },
+  {
+    "id": "intervention-2",
+    "wineId": "wine-frankovka",
+    "batchId": "batch-2",
+    "type": "sulfuring",
+    "performedAt": "2026-07-18T09:00:00.000Z",
+    "substance": "Pyrosiričitan draselný",
+    "amount": 12,
+    "amountUnit": "g",
+    "createdAt": "2026-07-18T09:00:00.000Z",
+    "updatedAt": "2026-07-18T09:00:00.000Z",
+    "syncStatus": "synced"
+  },
+  {
+    "id": "intervention-3",
+    "wineId": "wine-veltlin",
+    "batchId": "batch-3",
+    "type": "racking",
+    "performedAt": "2026-07-15T11:00:00.000Z",
+    "volumeBeforeLiters": 30,
+    "volumeAfterLiters": 28,
+    "lossLiters": 2,
+    "notes": "Jemné stočenie z kalov.",
+    "createdAt": "2026-07-15T11:00:00.000Z",
+    "updatedAt": "2026-07-15T11:00:00.000Z",
+    "syncStatus": "synced"
+  }
+]

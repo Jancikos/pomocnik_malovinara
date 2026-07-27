@@ -1,0 +1,22 @@
+{
+  "catalog": "sensory-ratings",
+  "version": 1,
+  "items": [
+    {
+      "code": "excellent",
+      "label": "Výborné",
+      "enabled": true,
+      "sortOrder": 1,
+      "color": "#66a984"
+    },
+    { "code": "good", "label": "Dobré", "enabled": true, "sortOrder": 2, "color": "#8dae7a" },
+    {
+      "code": "needs_attention",
+      "label": "Vyžaduje kontrolu",
+      "enabled": true,
+      "sortOrder": 3,
+      "color": "#d5aa55"
+    },
+    { "code": "bad", "label": "Zlé", "enabled": true, "sortOrder": 4, "color": "#e56868" }
+  ]
+}

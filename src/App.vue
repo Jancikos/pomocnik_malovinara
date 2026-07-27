@@ -1,11 +1,16 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { onMounted } from 'vue'
+import { useAppStore } from '@/stores/app'
+import AppShell from '@/components/AppShell.vue'
+
+const store = useAppStore()
+onMounted(() => store.initialize())
+</script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <div v-if="!store.ready" class="loading-screen">
+    <span class="brand-mark">V</span>
+    <p>Otváram pivnicu…</p>
+  </div>
+  <AppShell v-else />
 </template>
-
-<style scoped></style>

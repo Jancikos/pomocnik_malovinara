@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "demo": true,
+  "critical": {
+    "minimumFreeSo2": 15,
+    "maxMeasurementAgeDays": 45,
+    "minimumFillRatio": 0.6,
+    "temperatureByPhase": {
+      "must": { "min": 8, "max": 22 },
+      "fermentation": { "min": 12, "max": 24 },
+      "maturation": { "min": 8, "max": 18 },
+      "bottled": { "min": 6, "max": 20 }
+    }
+  },
+  "phaseStatus": {
+    "must": "fermenting",
+    "fermentation": "fermenting",
+    "maturation": "maturing",
+    "bottled": "maturing"
+  }
+}

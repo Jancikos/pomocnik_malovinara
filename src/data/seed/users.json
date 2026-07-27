@@ -1,0 +1,11 @@
+[
+  {
+    "id": "user-oskar",
+    "email": "oskar@example.sk",
+    "firstName": "Oskar",
+    "lastName": "Vinár",
+    "isActive": true,
+    "createdAt": "2026-01-01T08:00:00.000Z",
+    "updatedAt": "2026-01-01T08:00:00.000Z"
+  }
+]

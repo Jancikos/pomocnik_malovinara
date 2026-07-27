@@ -1,0 +1,201 @@
+[
+  {
+    "id": "batch-1",
+    "wineId": "wine-rizling",
+    "code": "RV26-A",
+    "name": "Rizling – hlavná šarža",
+    "status": "active",
+    "phase": "fermentation",
+    "container": {
+      "label": "Tank A1",
+      "type": "steel_tank",
+      "material": "Nerez",
+      "capacityLiters": 500,
+      "location": "Horný rad",
+      "imageKey": "tank"
+    },
+    "currentVolumeLiters": 460,
+    "startedAt": "2026-07-10T08:00:00.000Z",
+    "createdAt": "2026-07-10T08:00:00.000Z",
+    "updatedAt": "2026-07-24T08:00:00.000Z"
+  },
+  {
+    "id": "batch-2",
+    "wineId": "wine-frankovka",
+    "code": "FM26-A",
+    "name": "Frankovka – dub",
+    "status": "active",
+    "phase": "maturation",
+    "container": {
+      "label": "Sud 03",
+      "type": "wood_barrel",
+      "material": "Slovenský dub",
+      "capacityLiters": 225,
+      "location": "Ľavá stena",
+      "imageKey": "barrel"
+    },
+    "currentVolumeLiters": 218,
+    "startedAt": "2026-06-20T08:00:00.000Z",
+    "createdAt": "2026-06-20T08:00:00.000Z",
+    "updatedAt": "2026-07-23T08:00:00.000Z"
+  },
+  {
+    "id": "batch-3",
+    "wineId": "wine-veltlin",
+    "code": "VZ26-A",
+    "name": "Veltlín – jemný kal",
+    "status": "active",
+    "phase": "maturation",
+    "container": {
+      "label": "Demižón 12",
+      "type": "demijohn",
+      "capacityLiters": 50,
+      "location": "Polica B",
+      "imageKey": "demijohn"
+    },
+    "currentVolumeLiters": 28,
+    "startedAt": "2026-07-02T08:00:00.000Z",
+    "createdAt": "2026-07-02T08:00:00.000Z",
+    "updatedAt": "2026-07-20T08:00:00.000Z"
+  },
+  {
+    "id": "batch-4",
+    "wineId": "wine-rose",
+    "code": "RR26-A",
+    "name": "Rosé – čerstvá šarža",
+    "status": "active",
+    "phase": "fermentation",
+    "container": {
+      "label": "Kaďa K2",
+      "type": "plastic_vat",
+      "material": "Potravinársky plast",
+      "capacityLiters": 300,
+      "location": "Lisovňa",
+      "imageKey": "vat"
+    },
+    "currentVolumeLiters": 275,
+    "startedAt": "2026-07-19T08:00:00.000Z",
+    "createdAt": "2026-07-19T08:00:00.000Z",
+    "updatedAt": "2026-07-25T08:00:00.000Z"
+  },
+  {
+    "id": "batch-5",
+    "wineId": "wine-rizling",
+    "code": "RV26-B",
+    "name": "Rizling – výber",
+    "status": "active",
+    "phase": "maturation",
+    "container": {
+      "label": "Plastový sud P1",
+      "type": "plastic_barrel",
+      "capacityLiters": 120,
+      "location": "Zadná stena",
+      "imageKey": "plastic-barrel"
+    },
+    "currentVolumeLiters": 114,
+    "startedAt": "2026-06-28T08:00:00.000Z",
+    "createdAt": "2026-06-28T08:00:00.000Z",
+    "updatedAt": "2026-07-21T08:00:00.000Z"
+  },
+  {
+    "id": "batch-6",
+    "wineId": "wine-frankovka",
+    "code": "FM26-B",
+    "name": "Frankovka – archív",
+    "status": "active",
+    "phase": "bottled",
+    "container": {
+      "label": "Fľaše FM-A",
+      "type": "bottle",
+      "material": "Sklo",
+      "capacityLiters": 90,
+      "location": "Archív",
+      "imageKey": "bottle"
+    },
+    "currentVolumeLiters": 90,
+    "startedAt": "2026-07-05T08:00:00.000Z",
+    "createdAt": "2026-07-05T08:00:00.000Z",
+    "updatedAt": "2026-07-18T08:00:00.000Z"
+  },
+  {
+    "id": "batch-7",
+    "wineId": "wine-veltlin",
+    "code": "VZ26-B",
+    "name": "Veltlín – tank",
+    "status": "active",
+    "phase": "fermentation",
+    "container": {
+      "label": "Tank B4",
+      "type": "steel_tank",
+      "material": "Nerez",
+      "capacityLiters": 400,
+      "location": "Stredný rad",
+      "imageKey": "tank"
+    },
+    "currentVolumeLiters": 390,
+    "startedAt": "2026-07-13T08:00:00.000Z",
+    "createdAt": "2026-07-13T08:00:00.000Z",
+    "updatedAt": "2026-07-24T08:00:00.000Z"
+  },
+  {
+    "id": "batch-8",
+    "wineId": "wine-frankovka",
+    "code": "FM26-C",
+    "name": "Frankovka – rezervná",
+    "status": "active",
+    "phase": "maturation",
+    "container": {
+      "label": "Sud 07",
+      "type": "wood_barrel",
+      "material": "Francúzsky dub",
+      "capacityLiters": 225,
+      "location": "Pravá stena",
+      "imageKey": "barrel"
+    },
+    "currentVolumeLiters": 210,
+    "startedAt": "2026-06-24T08:00:00.000Z",
+    "createdAt": "2026-06-24T08:00:00.000Z",
+    "updatedAt": "2026-07-22T08:00:00.000Z"
+  },
+  {
+    "id": "batch-old-1",
+    "wineId": "wine-rizling",
+    "code": "RV26-M",
+    "name": "Rizling – pôvodný mušt",
+    "status": "closed",
+    "phase": "closed",
+    "container": {
+      "label": "Kaďa K1",
+      "type": "plastic_vat",
+      "capacityLiters": 650,
+      "location": "Lisovňa",
+      "imageKey": "vat"
+    },
+    "currentVolumeLiters": 0,
+    "startedAt": "2026-06-08T08:00:00.000Z",
+    "closedAt": "2026-07-10T08:00:00.000Z",
+    "closeReason": "split",
+    "createdAt": "2026-06-08T08:00:00.000Z",
+    "updatedAt": "2026-07-10T08:00:00.000Z"
+  },
+  {
+    "id": "batch-old-2",
+    "wineId": "wine-frankovka",
+    "code": "FM26-M",
+    "name": "Frankovka – pred stáčaním",
+    "status": "closed",
+    "phase": "closed",
+    "container": {
+      "label": "Tank C1",
+      "type": "steel_tank",
+      "capacityLiters": 500,
+      "imageKey": "tank"
+    },
+    "currentVolumeLiters": 0,
+    "startedAt": "2026-06-09T08:00:00.000Z",
+    "closedAt": "2026-06-20T08:00:00.000Z",
+    "closeReason": "transfer",
+    "createdAt": "2026-06-09T08:00:00.000Z",
+    "updatedAt": "2026-06-20T08:00:00.000Z"
+  }
+]

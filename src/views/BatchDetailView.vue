@@ -260,7 +260,9 @@ async function saveIntervention() {
 
 <template>
   <section v-if="batch" class="detail-view">
-    <button class="back-button" @click="router.back()">← <span>Späť do pivnice</span></button>
+    <button class="back-button" @click="router.back()">
+      <IconGlyph name="arrow-left" /><span>Späť do pivnice</span>
+    </button>
     <div class="detail-hero">
       <div class="detail-vessel">
         <ContainerVisual :image-key="batch.container.imageKey" />
@@ -274,7 +276,9 @@ async function saveIntervention() {
         <p class="eyebrow gold">{{ batch.code }} · {{ wine?.name }} {{ wine?.vintageYear }}</p>
         <h1>{{ batch.container.label }}</h1>
         <p class="detail-subtitle">{{ batch.name }}</p>
-        <p v-if="batch.container.location" class="location">⌖ {{ batch.container.location }}</p>
+        <p v-if="batch.container.location" class="location">
+          <IconGlyph name="location" />{{ batch.container.location }}
+        </p>
       </div>
       <button class="secondary-button edit-button" aria-label="Upraviť údaje šarže">Upraviť</button>
     </div>
@@ -313,7 +317,7 @@ async function saveIntervention() {
             <h2>Posledné merania</h2>
           </div>
           <button class="text-button" @click="openMeasurementTypes">
-            ＋ Pridať
+            <IconGlyph name="plus" /> Pridať
           </button>
         </div>
         <div v-if="currentMeasurements.length" class="measurement-list">
@@ -344,7 +348,7 @@ async function saveIntervention() {
             <h2>Posledné zásahy</h2>
           </div>
           <button class="text-button" @click="openInterventionTypes">
-            ＋ Pridať
+            <IconGlyph name="plus" /> Pridať
           </button>
         </div>
         <div v-if="batchInterventions.length" class="timeline">
@@ -364,7 +368,9 @@ async function saveIntervention() {
       </section>
     </div>
 
-    <button class="detail-cta primary-button" @click="openEntry">＋ Pridať meranie / zásah</button>
+    <button class="detail-cta primary-button" @click="openEntry">
+      <IconGlyph name="plus" /> Pridať meranie / zásah
+    </button>
 
     <div v-if="showEntry" class="sheet-backdrop" @click.self="showEntry = false">
       <section class="sheet entry-sheet" role="dialog" aria-modal="true">
@@ -382,19 +388,21 @@ async function saveIntervention() {
               }}
             </h2>
           </div>
-          <button class="icon-button" aria-label="Zavrieť" @click="showEntry = false">×</button>
+          <button class="icon-button" aria-label="Zavrieť" @click="showEntry = false">
+            <IconGlyph name="close" />
+          </button>
         </div>
 
         <div v-if="entryMode === 'choose'" class="entry-choice">
           <button @click="entryMode = 'measurement-types'">
-            <span class="choice-icon gold-bg">⌁</span>
+            <span class="choice-icon gold-bg"><IconGlyph name="measurements" /></span>
             <div><strong>Meranie</strong><small>Hodnota bez zásahu do vína</small></div>
-            <b>→</b>
+            <b><IconGlyph name="arrow-right" /></b>
           </button>
           <button @click="entryMode = 'intervention-types'">
-            <span class="choice-icon wine-bg">✦</span>
+            <span class="choice-icon wine-bg"><IconGlyph name="clarity" /></span>
             <div><strong>Zásah</strong><small>Úkon meniaci víno alebo objem</small></div>
-            <b>→</b>
+            <b><IconGlyph name="arrow-right" /></b>
           </button>
         </div>
 
@@ -414,7 +422,7 @@ async function saveIntervention() {
           @submit.prevent="saveMeasurement"
         >
           <button class="mini-back" type="button" @click="entryMode = 'measurement-types'">
-            ← Zmeniť typ
+            <IconGlyph name="arrow-left" /> Zmeniť typ
           </button>
           <div class="selected-type">
             <IconGlyph :name="measurementCatalog?.iconKey ?? 'drop'" />
@@ -503,7 +511,7 @@ async function saveIntervention() {
 
         <form v-else class="entry-form" @submit.prevent="saveIntervention">
           <button class="mini-back" type="button" @click="entryMode = 'intervention-types'">
-            ← Zmeniť typ
+            <IconGlyph name="arrow-left" /> Zmeniť typ
           </button>
           <div class="selected-type">
             <IconGlyph :name="interventionCatalog?.iconKey ?? 'note'" />

@@ -113,7 +113,7 @@ async function removeSelected() {
     </div>
     <section class="history-filters panel">
       <label class="search-field span-2"
-        ><span>⌕</span
+        ><span><IconGlyph name="search" /></span
         ><input
           v-model="query"
           aria-label="Hľadať v histórii"
@@ -208,7 +208,7 @@ async function removeSelected() {
                   : 'Čaká'
             }}</small>
           </div>
-          <span class="event-arrow">›</span>
+          <span class="event-arrow"><IconGlyph name="arrow-right" /></span>
         </button>
       </section>
       <p v-if="!grouped.length" class="empty-state">
@@ -224,7 +224,9 @@ async function removeSelected() {
             <p class="eyebrow gold">Detail udalosti</p>
             <h2>{{ eventLabel(selected) }}</h2>
           </div>
-          <button class="icon-button" aria-label="Zavrieť" @click="selected = undefined">×</button>
+          <button class="icon-button" aria-label="Zavrieť" @click="selected = undefined">
+            <IconGlyph name="close" />
+          </button>
         </div>
         <dl>
           <div>

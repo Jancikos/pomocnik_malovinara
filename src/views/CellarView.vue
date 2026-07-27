@@ -4,6 +4,7 @@ import { useAppStore } from '@/stores/app'
 import { CatalogOptionProvider, catalogService } from '@/services/catalog'
 import BatchCard from '@/components/BatchCard.vue'
 import ContainerVisual from '@/components/ContainerVisual.vue'
+import IconGlyph from '@/components/IconGlyph.vue'
 
 const store = useAppStore()
 const showForm = ref(false)
@@ -77,11 +78,13 @@ async function submit() {
           <strong>{{ store.activeBatches.length }}</strong> aktívnych šarží vo vašej starostlivosti
         </p>
       </div>
-      <button class="primary-button desktop-add" @click="showForm = true">＋ Pridať šaržu</button>
+      <button class="primary-button desktop-add" @click="showForm = true">
+        <IconGlyph name="plus" /> Pridať šaržu
+      </button>
     </div>
     <div class="toolbar">
       <label class="search-field">
-        <span>⌕</span>
+        <span><IconGlyph name="search" /></span>
         <input
           v-model="search"
           aria-label="Hľadať v pivnici"
@@ -104,7 +107,9 @@ async function submit() {
       />
     </div>
     <p v-if="filtered.length === 0" class="empty-state">Nenašla sa žiadna zodpovedajúca šarža.</p>
-    <button class="floating-add" aria-label="Pridať šaržu" @click="showForm = true">＋</button>
+    <button class="floating-add" aria-label="Pridať šaržu" @click="showForm = true">
+      <IconGlyph name="plus" />
+    </button>
 
     <div v-if="showForm" class="sheet-backdrop" @click.self="showForm = false">
       <section
@@ -119,7 +124,9 @@ async function submit() {
             <p class="eyebrow gold">Nová evidencia</p>
             <h2 id="new-batch-title">Pridať víno a prvú šaržu</h2>
           </div>
-          <button class="icon-button" aria-label="Zavrieť" @click="showForm = false">×</button>
+          <button class="icon-button" aria-label="Zavrieť" @click="showForm = false">
+            <IconGlyph name="close" />
+          </button>
         </div>
         <form class="form-grid" @submit.prevent="submit">
           <label class="span-2"

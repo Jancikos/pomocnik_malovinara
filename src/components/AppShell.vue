@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { formatDateTime } from '@/shared/formatting'
+import IconGlyph from './IconGlyph.vue'
 
 const store = useAppStore()
 const route = useRoute()
@@ -31,7 +32,9 @@ function signOut() {
           {{ store.online ? 'Online' : 'Offline' }}
           <b v-if="store.pendingCount">{{ store.pendingCount }}</b>
         </button>
-        <button class="icon-button" aria-label="Odhlásiť sa" @click="signOut">↗</button>
+        <button class="icon-button" aria-label="Odhlásiť sa" @click="signOut">
+          <IconGlyph name="logout" />
+        </button>
       </div>
     </header>
     <div v-if="store.pendingCount || store.error" class="sync-strip">
@@ -48,13 +51,13 @@ function signOut() {
     </main>
     <nav class="bottom-nav" aria-label="Hlavná navigácia">
       <RouterLink to="/" :class="{ active: route.name === 'cellar' || route.name === 'batch' }">
-        <span>⌂</span>Pivnica
+        <IconGlyph name="home" />Pivnica
       </RouterLink>
       <RouterLink to="/merania" :class="{ active: route.name === 'measurements' }">
-        <span>⌁</span>Merania
+        <IconGlyph name="measurements" />Merania
       </RouterLink>
       <RouterLink to="/historia" :class="{ active: route.name === 'history' }">
-        <span>◷</span>História
+        <IconGlyph name="history" />História
       </RouterLink>
     </nav>
   </div>

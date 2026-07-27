@@ -1653,3 +1653,106 @@ textarea:focus {
     opacity: 0.75;
   }
 }
+
+/* Vessel imagery and SVG icon system */
+.icon-glyph {
+  display: block;
+  width: 1em;
+  height: 1em;
+  flex: none;
+  overflow: visible;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+}
+
+.icon-button .icon-glyph {
+  width: 20px;
+  height: 20px;
+}
+
+.bottom-nav a > .icon-glyph {
+  width: 20px;
+  height: 20px;
+  margin: 0 auto;
+  font-size: 20px;
+}
+
+.search-field span .icon-glyph {
+  width: 22px;
+  height: 22px;
+}
+
+.container-visual .vessel-image {
+  position: relative;
+  z-index: 1;
+  width: min(78%, 230px);
+  height: 86%;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 12px rgba(0, 0, 0, 0.42));
+  transition: transform 0.24s ease;
+}
+
+.batch-card:hover .vessel-image {
+  transform: translateY(-3px) scale(1.025);
+}
+
+.container-visual[data-kind='barrel'] .vessel-image {
+  width: min(82%, 250px);
+}
+
+.container-visual[data-kind='demijohn'] .vessel-image,
+.container-visual[data-kind='bottle'] .vessel-image {
+  height: 90%;
+}
+
+.container-visual.compact .vessel-image {
+  width: 66px;
+  height: 66px;
+}
+
+.location,
+.text-button,
+.mini-back {
+  display: inline-flex;
+  align-items: center;
+}
+
+.location {
+  gap: 6px;
+}
+
+.text-button,
+.mini-back {
+  gap: 6px;
+}
+
+.event-arrow {
+  display: grid;
+  place-items: center;
+}
+
+.placeholder-icon .icon-glyph {
+  width: 38px;
+  height: 38px;
+}
+
+.choice-icon .icon-glyph,
+.entry-choice b .icon-glyph {
+  width: 24px;
+  height: 24px;
+}
+
+.primary-button > .icon-glyph,
+.secondary-button > .icon-glyph,
+.back-button > .icon-glyph {
+  width: 18px;
+  height: 18px;
+}
+
+.floating-add .icon-glyph {
+  width: 28px;
+  height: 28px;
+}

@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
+import IconGlyph from '@/components/IconGlyph.vue'
 
 const store = useAppStore()
 const router = useRouter()
@@ -42,7 +43,9 @@ function submit() {
           </span>
         </label>
         <p v-if="store.error" class="form-error" role="alert">{{ store.error }}</p>
-        <button class="primary-button full" type="submit">Vstúpiť do pivnice <span>→</span></button>
+        <button class="primary-button full" type="submit">
+          Vstúpiť do pivnice <IconGlyph name="arrow-right" />
+        </button>
       </form>
       <div class="demo-credentials">
         <span>Demo účet</span>

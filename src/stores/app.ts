@@ -113,6 +113,77 @@ export const useAppStore = defineStore('app', () => {
     return batches.value.find((batch) => batch.id === id)
   }
 
+  function wineById(id: string): Wine | undefined {
+    return wines.value.find((wine) => wine.id === id)
+  }
+
+  async function addWine(input: {
+    name: string
+    vintageYear: number
+    color: Wine['color']
+    notes?: string
+  }) {
+    if (!online.value) throw new Error('Vytvorenie vína vyžaduje internet.')
+    const name = input.name.trim()
+    if (!name) throw new Error('Zadajte názov vína.')
+    const duplicate = wines.value.some(
+      (wine) =>
+        wine.name.trim().toLocaleLowerCase('sk') === name.toLocaleLowerCase('sk') &&
+        wine.vintageYear === input.vintageYear,
+    )
+    if (duplicate) throw new Error('Víno s týmto názvom a ročníkom už existuje.')
+    const wine: Wine = {
+      id: uuid(),
+      code: `V-${Date.now().toString().slice(-5)}`,
+      name,
+      vintageYear: input.vintageYear,
+      color: input.color,
+      notes: input.notes?.trim() || undefined,
+      createdAt: new Date().toISOString(),
+    }
+    await wineryRepository.addWine(wine)
+    await refresh()
+    await synchronize()
+    return wine
+  }
+
+  async function addBatch(input: {
+    wineId: string
+    name: string
+    container: BatchContainer
+    volume: number
+    phase: string
+    notes?: string
+  }) {
+    const wine = wineById(input.wineId)
+    if (!wine) throw new Error('Vyberte existujúce víno.')
+    if (!online.value) throw new Error('Vytvorenie šarže vyžaduje internet.')
+    const issue = validateCapacity(input.volume, input.container.capacityLiters)
+    if (issue) throw new Error(issue)
+    if (!isContainerLabelUnique(input.container.label, batches.value)) {
+      throw new Error('Toto označenie už používa iná aktívna šarža.')
+    }
+    if (!input.name.trim()) throw new Error('Zadajte názov šarže.')
+    const now = new Date().toISOString()
+    const batch: Batch = {
+      id: uuid(),
+      wineId: wine.id,
+      code: `${wine.code}-S${batches.value.filter((item) => item.wineId === wine.id).length + 1}`,
+      name: input.name.trim(),
+      status: 'active',
+      phase: input.phase,
+      container: input.container,
+      currentVolumeLiters: input.volume,
+      startedAt: now,
+      notes: input.notes?.trim() || undefined,
+      createdAt: now,
+      updatedAt: now,
+    }
+    await wineryRepository.addBatch(batch)
+    await refresh()
+    await synchronize()
+    return batch
+  }
   async function addWineAndBatch(input: {
     wineName: string
     vintageYear: number
@@ -496,7 +567,10 @@ export const useAppStore = defineStore('app', () => {
     login,
     logout,
     wineFor,
+    wineById,
     batchById,
+    addWine,
+    addBatch,
     addWineAndBatch,
     addMeasurement,
     addIntervention,

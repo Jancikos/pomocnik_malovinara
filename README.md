@@ -93,4 +93,4 @@ Každé vytvorenie, zmena a soft delete sledovaného záznamu vytvorí nemenný 
 
 Automatický stav šarže používa `status-rules.json`: minimálnu voľnú síru, vek merania, pomer naplnenia a teplotu podľa fázy. Hodnoty sú výhradne demo, nie odborné, zdravotné ani legislatívne odporúčanie.
 
-Prvá verzia zámerne neobsahuje registráciu, roly, samostatnú evidenciu prázdnych nádob, kalkulačku síry ani cukru, notifikácie, svetlý režim alebo plnohodnotný prehľad Merania. Skutočný backend sa pripája implementáciou existujúcej repository hranice a serverového sync transportu.
+Prvá verzia zámerne neobsahuje registráciu, roly, samostatnú evidenciu prázdnych nádob, kalkulačku síry ani cukru, notifikácie, svetlý režim ani pokročilé analytické grafy na obrazovke Merania. Základný register meraní s filtrami je dostupný. Skutočný backend sa pripája implementáciou existujúcej repository hranice a serverového sync transportu.

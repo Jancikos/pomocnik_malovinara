@@ -22,6 +22,12 @@ const vessel = computed(() => vesselImages[props.imageKey] ?? fallbackVessel)
 <template>
   <div class="container-visual" :class="{ compact }" :data-kind="imageKey">
     <div class="vessel-shine"></div>
-    <img class="vessel-image" :src="vessel.src" :alt="vessel.alt" loading="eager" decoding="async" />
+    <img
+      class="vessel-image"
+      :src="vessel.src"
+      :alt="vessel.alt"
+      loading="eager"
+      decoding="async"
+    />
   </div>
 </template>

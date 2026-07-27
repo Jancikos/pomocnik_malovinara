@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { calculateDisplayStatus, latestMeasurements } from '@/domain/rules'
@@ -111,6 +111,10 @@ function openMeasurementTypes() {
   entryMode.value = 'measurement-types'
   showEntry.value = true
 }
+
+onMounted(() => {
+  if (route.query.akcia === 'meranie') openMeasurementTypes()
+})
 
 function openInterventionTypes() {
   entryMode.value = 'intervention-types'

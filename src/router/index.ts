@@ -4,12 +4,16 @@ import LoginView from '@/views/LoginView.vue'
 import BatchDetailView from '@/views/BatchDetailView.vue'
 import MeasurementsView from '@/views/MeasurementsView.vue'
 import HistoryView from '@/views/HistoryView.vue'
+import WinesView from '@/views/WinesView.vue'
+import WineDetailView from '@/views/WineDetailView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/prihlasenie', name: 'login', component: LoginView },
     { path: '/', name: 'cellar', component: CellarView, meta: { requiresAuth: true } },
+    { path: '/vina', name: 'wines', component: WinesView, meta: { requiresAuth: true } },
+    { path: '/vina/:id', name: 'wine', component: WineDetailView, meta: { requiresAuth: true } },
     { path: '/sarza/:id', name: 'batch', component: BatchDetailView, meta: { requiresAuth: true } },
     {
       path: '/merania',

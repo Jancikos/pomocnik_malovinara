@@ -110,6 +110,23 @@ export class WineryRepository {
     })
   }
 
+  async addWine(wine: Wine): Promise<void> {
+    const item = queueItem('wine', wine.id, 'create', { ...wine })
+    await db.transaction('rw', [db.wines, db.audits, db.syncQueue], async () => {
+      await db.wines.add(wine)
+      await db.audits.add(audit('wine', wine.id, 'create', { ...wine }))
+      await db.syncQueue.add(item)
+    })
+  }
+
+  async addBatch(batch: Batch): Promise<void> {
+    const item = queueItem('batch', batch.id, 'create', { ...batch })
+    await db.transaction('rw', [db.batches, db.audits, db.syncQueue], async () => {
+      await db.batches.add(batch)
+      await db.audits.add(audit('batch', batch.id, 'create', { ...batch }))
+      await db.syncQueue.add(item)
+    })
+  }
   async addMeasurement(measurement: Measurement): Promise<void> {
     const item = queueItem('measurement', measurement.id, 'create', { ...measurement })
     await db.transaction('rw', [db.measurements, db.audits, db.syncQueue], async () => {

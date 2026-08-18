@@ -1,96 +1,80 @@
 # Vinársky Pomocník
 
-Mobile-first PWA prototyp pre malovinára. Eviduje vína, vstupný materiál, šarže s vloženým snapshotom nádoby, merania, zásahy, históriu a auditnú stopu. Po prvom online prihlásení funguje vybraný obsah aj bez pripojenia.
+Mobilne orientovaná full-stack aplikácia pre evidenciu vín, nádob, výrobných šarží, meraní, zásahov a presunov v malej pivnici.
 
-## Spustenie
+## Architektúra
 
-Požaduje Node.js 22.18+ alebo 24.12+.
+Aplikácia používa Nuxt 4 pre Vue frontend aj Nitro API. Aplikačné dáta sú uložené iba v serverovej SQLite databáze cez Drizzle ORM.
 
-```sh
-npm install
-npm run dev
+```text
+Nuxt page → composable → Nitro API → service → repository → Drizzle → SQLite
 ```
 
-Produkčné a kontrolné príkazy:
+Doménové enumy a DTO sú v `shared/`. Business pravidlá a transakcie sú v `server/services/`, databázové dotazy v `server/repositories/` a schéma v `server/database/schema.ts`.
+
+## Lokálny vývoj
+
+Požiadavka: Node.js 22.18 alebo novší.
 
 ```sh
-npm run build
-npm run lint
-npm run test:unit -- --run
-npm run test:e2e
+npm ci
+cp .env.example .env
+npm run db:migrate
+npm run db:seed
+npm run dev
 ```
 
 Demo účet:
 
-- e-mail: `oskar@example.sk`
-- heslo: `vino2026`
-
-Prihlásenie je iba lokálna simulácia, nie produkčný bezpečnostný mechanizmus. Heslo sa do relácie ani databázy neukladá.
-
-## Architektúra
-
-Rozhranie je postavené na Vue 3, Composition API, Pinia, Vue Router a Tailwind CSS. Dáta prechádzajú z obrazoviek cez aplikačný store do repository vrstvy a Dexie/IndexedDB. `WineryRepository` je hranica, ktorú možno neskôr nahradiť HTTP implementáciou bez zmeny prezentačných komponentov.
-
-Lokálna databáza má verziované migrácie. Seed sa importuje iba raz podľa `seedVersion` a ďalšie spustenia neprepisujú používateľské zmeny. Viacentitné operácie (víno + prvá šarža, presun, rozdelenie a spojenie) sa zapisujú v jednej IndexedDB transakcii spolu s auditom a jednou položkou synchronizačného radu.
-
-Nádoba nie je entita: nemá tabuľku, repository, samostatný seed ani CRUD. Je uložená ako `BatchContainer` priamo v každej šarži a po uzavretí zostáva historickým snapshotom.
-
-## Seed dáta
-
-`src/data/seed/` obsahuje nemenné ukážkové súbory:
-
-- `users.json`, `cellars.json` – demo identita a pivnica,
-- `wines.json`, `materials.json` – rodičovské vína a zber,
-- `batches.json` – osem aktívnych a historické šarže s vloženými nádobami,
-- `batch-relations.json` – ukážka presunu a rozdelenia,
-- `measurements.json`, `interventions.json` – časová os,
-- `audit-entries.json` – počiatočný audit.
-
-Súbor `containers.json` zámerne neexistuje.
-
-Demo dáta možno obnoviť vymazaním IndexedDB `vinarsky-pomocnik` a lokálnych kľúčov s prefixom `vinarsky-`, prípadne cez metódu `resetDemo()` aplikačného store.
-
-## Číselníky
-
-Všetky dynamické katalógy sú v `src/data/config/`, majú stabilný `catalog`, verziu a položky s `code`, slovenským `label`, `enabled` a `sortOrder`. Položka môže navyše definovať farbu, ikonu, vizuál, jednotku, validačný rozsah, formulárové polia a doménový `behavior`.
-
-Novú položku pridajte do príslušného JSON súboru s jedinečným kódom a poradím. Vue komponent netreba meniť. Deaktivovaná položka sa nezobrazí pri novom zázname, ale `CatalogService.get()` ju naďalej rozpozná v histórii.
-
-| Číselník | Stratégia | Dôvod |
-|---|---|---|
-| Typ suroviny, typ materiálu, farba vína | TypeScript enum | Malé stabilné dátové kontrakty |
-| Produkčný a životný stav šarže | TypeScript enum | Systémové invarianty a obchodná logika |
-| Dôvod uzavretia a typ väzby | TypeScript enum/literal union | Priama väzba na operácie |
-| Technické sync stavy | TypeScript literal union | Interný protokol, nie používateľská konfigurácia |
-| Typ nádoby | Catalog Service + JSON | Názov, poradie, ikona a vizuál |
-| Fáza a vizuálny stav šarže | Catalog Service + JSON | UI prezentácia a konfigurovateľné pravidlá |
-| Typ merania | Catalog Service + JSON | Jednotka, vstup a demo limity |
-| Senzorika a čírosť | Catalog Service + JSON | Poradie, dostupnosť a historické zobrazenie |
-| Typ zásahu | Catalog Service + JSON | Dynamické polia a behavior handler |
-| Jednotky | Catalog Service + JSON | Zdieľané referencie iných katalógov |
-
-`CatalogOptionProvider` a `EnumOptionProvider` zjednocujú vykreslenie oboch stratégií. Slovenské názvy enumov sú iba v centrálnej `enumLabels` mape. Catalog Service predstavuje runtime prezentáciu; enum predstavuje stabilný kódový kontrakt; technický stav patrí výhradne synchronizačnému protokolu.
-
-## PWA, offline a synchronizácia
-
-PWA manifest, lokálne ikony a service worker generuje `vite-plugin-pwa`. Aktualizácia novej verzie sa ponúkne používateľovi bezpečným potvrdením.
-
-Po prvom online prihlásení sú offline dostupné Pivnica, už uložené detaily a História. Offline možno vytvoriť meranie alebo zásah; manipulačný zásah sa uloží atomicky, ak sú zdrojové šarže lokálne dostupné. Vytvorenie vína alebo prvej šarže vyžaduje pripojenie.
-
-Synchronizačný rad spracúva položky FIFO a používa `idempotencyKey`. Stavy sú `pending`, `syncing`, `synced` a `failed`. Spustí sa po obnovení pripojenia, návrate do aplikácie a tlačidlom „Synchronizovať“. Background Sync je iba progresívne vylepšenie; aplikácia má vlastný fallback.
-
-Simulovanú chybu zapnete:
-
-```js
-localStorage.setItem('vinarsky-simulate-error', 'true')
+```text
+oskar@example.sk
+vino2026
 ```
 
-Vypnete ju odstránením kľúča. Opakované odoslanie rovnakého idempotency kľúča nevytvorí duplicitný serverový receipt.
+Prihlásenie používa serverovú session a HTTP-only cookie. Dáta každej požiadavky sú na serveri scopeované cez membership používateľa v pivnici.
 
-## Audit, pravidlá a obmedzenia
+## Databáza a migrácie
 
-Každé vytvorenie, zmena a soft delete sledovaného záznamu vytvorí nemenný `AuditEntry` s pôvodným a novým snapshotom. Offline audit vzniká v rovnakej transakcii ako doménová zmena.
+Cestu určuje `DATABASE_URL`. Vývojová hodnota je `./data/dev.sqlite`. Pre produkciu použite cestu na persistentnom filesysteme mimo repozitára a mimo `.output`, napríklad:
 
-Automatický stav šarže používa `status-rules.json`: minimálnu voľnú síru, vek merania, pomer naplnenia a teplotu podľa fázy. Hodnoty sú výhradne demo, nie odborné, zdravotné ani legislatívne odporúčanie.
+```env
+DATABASE_URL=/var/lib/vinarsky-pomocnik/database.sqlite
+```
 
-Prvá verzia zámerne neobsahuje registráciu, roly, samostatnú evidenciu prázdnych nádob, kalkulačku síry ani cukru, notifikácie, svetlý režim ani pokročilé analytické grafy na obrazovke Merania. Základný register meraní s filtrami je dostupný. Skutočný backend sa pripája implementáciou existujúcej repository hranice a serverového sync transportu.
+Novú migráciu vytvorí `npm run db:generate`, existujúce migrácie aplikuje `npm run db:migrate`. SQLite používa foreign keys, busy timeout a WAL režim.
+
+## Overenie
+
+```sh
+npm run typecheck
+npm run lint
+npm test
+npm run build
+```
+
+Testy pokrývajú generovanie ID, append-only merania, latest-per-type, uzavretie, odkalenie, single aj multi-destination stáčanie, objemovú bilanciu, kapacitu, lineage a ochranu force delete.
+
+## Hlavné API
+
+- `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
+- `GET /api/cellar/dashboard`
+- `GET|POST /api/wines`, `GET /api/wines/:id`
+- `GET|POST /api/vessels`, `GET|PATCH /api/vessels/:id`
+- `GET|POST /api/batches`, `GET|DELETE /api/batches/:id`
+- `POST /api/batches/:id/close`
+- `GET|POST /api/batches/:id/measurements`
+- `POST /api/batches/:id/interventions`
+- `POST /api/transfers`
+
+`DELETE /api/batches/:id` vyžaduje potvrdenie `FORCE DELETE` a odmietne vymazanie šarže s históriou alebo následníkmi.
+
+## Produkčné spustenie
+
+Projekt cieli na jeden klasický Node/Nitro server a jeden SQLite súbor na persistentnom filesysteme:
+
+```sh
+npm ci
+npm run db:migrate
+npm run build
+node .output/server/index.mjs
+```

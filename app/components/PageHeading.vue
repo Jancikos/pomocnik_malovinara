@@ -1,0 +1,2 @@
+<script setup lang="ts">defineProps<{ eyebrow: string; title: string; description?: string }>()</script>
+<template><div class="page-heading"><div><p class="eyebrow gold">{{ eyebrow }}</p><h1>{{ title }}</h1><p v-if="description" class="muted">{{ description }}</p></div><div class="heading-action"><slot /></div></div></template>

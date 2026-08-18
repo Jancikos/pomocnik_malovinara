@@ -1,38 +1,22 @@
-import { globalIgnores } from 'eslint/config'
-import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
-import pluginVue from 'eslint-plugin-vue'
-import pluginPlaywright from 'eslint-plugin-playwright'
-import pluginVitest from '@vitest/eslint-plugin'
-import pluginOxlint from 'eslint-plugin-oxlint'
-import skipFormatting from 'eslint-config-prettier/flat'
+import tsParser from '@typescript-eslint/parser'
+import vue from 'eslint-plugin-vue'
 
-// To allow more languages other than `ts` in `.vue` files, uncomment the following lines:
-// import { configureVueProject } from '@vue/eslint-config-typescript'
-// configureVueProject({ scriptLangs: ['ts', 'tsx'] })
-// More info at https://github.com/vuejs/eslint-config-typescript/#advanced-setup
-
-export default defineConfigWithVueTs(
+export default [
+  { ignores: ['.nuxt/**', '.output/**', 'dist/**', 'coverage/**', 'node_modules/**', 'drizzle/migrations/**'] },
+  ...vue.configs['flat/recommended'],
   {
-    name: 'app/files-to-lint',
-    files: ['**/*.{vue,ts,mts,tsx}'],
+    files: ['**/*.ts'],
+    languageOptions: { parser: tsParser, parserOptions: { sourceType: 'module' } },
   },
-
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
-
-  ...pluginVue.configs['flat/essential'],
-  vueTsConfigs.recommended,
-
   {
-    ...pluginPlaywright.configs['flat/recommended'],
-    files: ['e2e/**/*.{test,spec}.{js,ts,jsx,tsx}'],
+    files: ['**/*.vue'],
+    languageOptions: { parserOptions: { parser: tsParser, extraFileExtensions: ['.vue'] } },
+    rules: {
+      'vue/multi-word-component-names': 'off',
+      'vue/html-self-closing': 'off',
+      'vue/max-attributes-per-line': 'off',
+      'vue/singleline-html-element-content-newline': 'off',
+      'vue/html-indent': 'off',
+    },
   },
-
-  {
-    ...pluginVitest.configs.recommended,
-    files: ['src/**/__tests__/*'],
-  },
-
-  ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
-
-  skipFormatting,
-)
+]

@@ -134,8 +134,10 @@ Hlavné entity sú používateľ, pivnica, členstvo, víno, vstupná surovina, 
 Dôležité pravidlá:
 
 - Pri vytvorení každej šarže sa povinne zadáva názov, typ a kapacita nádoby; umiestnenie je voliteľné.
+- Počiatočnú fázu šarže používateľ vyberá manuálne už pri jej vytvorení.
 - Rovnaký názov nádoby môže mať v pivnici najviac jedna aktívna šarža.
 - Merania sú append-only; oprava alebo nová hodnota vytvorí nový záznam.
+- Ľubovoľný podporovaný typ merania alebo zásahu možno zaznamenať v ktorejkoľvek fáze aktívnej šarže.
 - API vie vrátiť poslednú hodnotu každého typu merania.
 - Uzavretie šarže a presuny rešpektujú objem, kapacitu a históriu.
 - Presuny obsahu medzi nádobami prebiehajú transakčne.

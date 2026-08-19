@@ -36,6 +36,8 @@ export async function getBatch(db: Database, cellarId: string, id: string) {
 
 export function createBatch(db: Database, cellarId: string, body: Record<string, unknown>) {
   const wineId = String(body.wineId || '')
+  const phase = body.phase as BatchPhase
+  if (!Object.values(BatchPhase).includes(phase)) throw new DomainError('Fáza šarže nie je platná.')
   const volume = parseDecimal(body.volume, 'Objem')
   if (volume <= 0) throw new DomainError('Objem musí byť kladný.')
   const vessel = parseVesselSnapshot(body.vessel, volume)
@@ -52,12 +54,12 @@ export function createBatch(db: Database, cellarId: string, body: Record<string,
       .some((item) => item.name.localeCompare(vessel.vesselName, 'sk', { sensitivity: 'base' }) === 0)
     if (occupied) throw new DomainError('Nádoba s týmto názvom už obsahuje aktívnu šaržu.', 409)
 
-    id = nextBatchIds(tx as unknown as Database, { cellarId, year: wine.vintageYear, wineCode: wine.code, phase: BatchPhase.MUST })[0]!
+    id = nextBatchIds(tx as unknown as Database, { cellarId, year: wine.vintageYear, wineCode: wine.code, phase })[0]!
     tx.insert(batches).values({
       id,
       cellarId,
       wineId,
-      phase: BatchPhase.MUST,
+      phase,
       ...vessel,
       volume,
       status: BatchStatus.ACTIVE,

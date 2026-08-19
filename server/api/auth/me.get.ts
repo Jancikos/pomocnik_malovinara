@@ -1,6 +1,6 @@
 import { withAuth } from '../../utils/handler'
 
 export default defineEventHandler((event) => withAuth(event, (_db, context) => ({
-  user: { id: context.userId, name: context.userName },
+  user: { id: context.userId, name: context.userName, email: context.userEmail },
   cellar: { id: context.cellarId, name: context.cellarName },
 })))

@@ -16,7 +16,7 @@ function tokenHash(token: string): string {
 export async function requireAuth(event: H3Event, db: Database) {
   const token = getCookie(event, cookieName)
   if (!token) throw new DomainError('Prihláste sa.', 401)
-  const row = db.select({ userId: users.id, userName: users.name, cellarId: cellars.id, cellarName: cellars.name })
+  const row = db.select({ userId: users.id, userName: users.name, userEmail: users.email, cellarId: cellars.id, cellarName: cellars.name })
     .from(sessions)
     .innerJoin(users, eq(sessions.userId, users.id))
     .innerJoin(cellarMembers, eq(cellarMembers.userId, users.id))
@@ -27,7 +27,7 @@ export async function requireAuth(event: H3Event, db: Database) {
     deleteCookie(event, cookieName)
     throw new DomainError('Platnosť prihlásenia vypršala.', 401)
   }
-  return { userId: row.userId, userName: row.userName, cellarId: row.cellarId, cellarName: row.cellarName }
+  return { userId: row.userId, userName: row.userName, userEmail: row.userEmail, cellarId: row.cellarId, cellarName: row.cellarName }
 }
 
 export function createSession(event: H3Event, db: Database, userId: string): void {

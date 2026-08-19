@@ -2,10 +2,11 @@ import { resolve } from 'node:path'
 import { eq } from 'drizzle-orm'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { BatchPhase, BatchStatus, MeasurementType, VesselType, WineColor } from '../../../shared/domain'
+import { BatchPhase, BatchStatus, InterventionType, MeasurementType, VesselType, WineColor } from '../../../shared/domain'
 import { createDatabase, type DatabaseContext } from '../../database/client'
 import { batches, cellarMembers, cellars, measurements, transferDestinations, transfers, users, wines } from '../../database/schema'
 import { closeBatch, createBatch, forceDeleteBatch, getBatch } from '../batch.service'
+import { createIntervention } from '../intervention.service'
 import { createMeasurement } from '../measurement.service'
 import { transferBatch } from '../transfer.service'
 
@@ -54,17 +55,20 @@ describe('batch lifecycle services', () => {
   it('generuje deterministické ID a uloží snapshot nádoby priamo do šarže', async () => {
     const first = await createBatch(context.db, 'cellar-1', {
       wineId: 'wine-1',
+      phase: BatchPhase.AGING,
       vessel: vessel('Tank T1'),
       volume: 100,
     })
     const second = await createBatch(context.db, 'cellar-1', {
       wineId: 'wine-1',
+      phase: BatchPhase.MUST,
       vessel: vessel('Tank T2'),
       volume: 80,
     })
 
-    expect(first.id).toBe('2026-IO-MUST-001')
-    expect(second.id).toBe('2026-IO-MUST-002')
+    expect(first.id).toBe('2026-IO-AGING-001')
+    expect(first.phase).toBe(BatchPhase.AGING)
+    expect(second.id).toBe('2026-IO-MUST-001')
     expect(first.vessel).toEqual({
       name: 'Tank T1',
       type: VesselType.STEEL_TANK,
@@ -74,9 +78,10 @@ describe('batch lifecycle services', () => {
   })
 
   it('odmietne druhú aktívnu šaržu s rovnakým názvom nádoby', async () => {
-    await createBatch(context.db, 'cellar-1', { wineId: 'wine-1', vessel: vessel('Tank T1'), volume: 100 })
+    await createBatch(context.db, 'cellar-1', { wineId: 'wine-1', phase: BatchPhase.MUST, vessel: vessel('Tank T1'), volume: 100 })
     expect(() => createBatch(context.db, 'cellar-1', {
       wineId: 'wine-1',
+      phase: BatchPhase.MUST,
       vessel: vessel('tank t1'),
       volume: 80,
     })).toThrow('aktívnu šaržu')
@@ -90,6 +95,15 @@ describe('batch lifecycle services', () => {
     expect((await getBatch(context.db, 'cellar-1', id)).latestMeasurements.SUGAR?.value).toBe(18.4)
   })
 
+  it('umožní ľubovoľný zásah v ľubovoľnej aktívnej fáze', async () => {
+    const id = insertBatch(BatchPhase.AGING)
+    const created = await createIntervention(context.db, 'cellar-1', id, {
+      type: InterventionType.CLARIFICATION,
+      performedAt: '2026-08-03T08:00:00Z',
+      notes: 'Kontrolný zásah počas zrenia.',
+    })
+    expect(created?.type).toBe(InterventionType.CLARIFICATION)
+  })
   it('umožní manuálne uzavretie a zablokuje ďalšie meranie', async () => {
     const id = insertBatch(BatchPhase.MUST)
     const closed = await closeBatch(context.db, 'cellar-1', id)

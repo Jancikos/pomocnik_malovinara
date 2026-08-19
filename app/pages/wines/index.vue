@@ -1,16 +1,80 @@
 <script setup lang="ts">
-import { WineColor, wineColorLabels } from '~~/shared/domain'
-const { data: wines, refresh } = await useWines()
-const open = ref(false)
-const saving = ref(false)
-const errorMessage = ref('')
-const form = reactive({ name: '', code: '', vintageYear: new Date().getFullYear(), color: WineColor.WHITE, notes: '', sourceMaterials: [{ grapeVariety: '', percentage: 100, weightKg: undefined as number | undefined, volumeLiters: undefined as number | undefined, harvestSugar: undefined as number | undefined }] })
-function addMaterial() { form.sourceMaterials.push({ grapeVariety: '', percentage: 0, weightKg: undefined, volumeLiters: undefined, harvestSugar: undefined }) }
-async function save() {
-  saving.value = true; errorMessage.value = ''
-  try { await $fetch('/api/wines', { method: 'POST', body: form }); await refresh(); open.value = false }
-  catch (error) { errorMessage.value = apiErrorMessage(error, 'Víno sa nepodarilo uložiť.') }
-  finally { saving.value = false }
+import { wineColorLabels } from '~~/shared/domain'
+import type { WineDto } from '~~/shared/types/api'
+
+const { data: wines } = await useWines()
+const { data: batches } = await useBatches()
+const search = ref('')
+
+const filtered = computed(() => {
+  const query = search.value.trim().toLocaleLowerCase('sk')
+  if (!query) return wines.value ?? []
+  return (wines.value ?? []).filter((wine) =>
+    `${wine.name} ${wine.code} ${wine.vintageYear}`.toLocaleLowerCase('sk').includes(query),
+  )
+})
+
+const totalVolume = computed(() => (batches.value ?? [])
+  .filter((batch) => batch.status === 'ACTIVE')
+  .reduce((sum, batch) => sum + batch.volume, 0))
+
+function wineStats(wine: WineDto) {
+  const active = (batches.value ?? []).filter((batch) => batch.wineId === wine.id && batch.status === 'ACTIVE')
+  return {
+    count: active.length,
+    volume: active.reduce((sum, batch) => sum + batch.volume, 0),
+  }
 }
 </script>
-<template><section><PageHeading eyebrow="Portfólio pivnice" title="Moje vína" :description="`${wines?.length || 0} evidovaných vín`"><button class="primary-button" @click="open = true">+ Nové víno</button></PageHeading><div class="list-grid"><NuxtLink v-for="wine in wines" :key="wine.id" class="panel wine-card" :to="`/wines/${wine.id}`"><p class="eyebrow gold">{{ wine.code }} · {{ wine.vintageYear }}</p><h2>{{ wine.name }}</h2><p class="muted">{{ wineColorLabels[wine.color] }}</p></NuxtLink></div><div v-if="open" class="modal-backdrop" @click.self="open = false"><form class="sheet" @submit.prevent="save"><div class="sheet-heading"><h2>Nové víno</h2><button type="button" class="ghost-button" @click="open = false">Zavrieť</button></div><div class="form-grid"><label class="span-2">Názov<input v-model="form.name" required></label><label>Kód<input v-model="form.code" maxlength="8" required placeholder="IO"></label><label>Ročník<input v-model.number="form.vintageYear" type="number" min="1900" max="2100" required></label><label class="span-2">Farba<select v-model="form.color"><option v-for="color in WineColor" :key="color" :value="color">{{ wineColorLabels[color] }}</option></select></label><label class="span-2">Poznámka<textarea v-model="form.notes" rows="2" /></label><div class="span-2 section-title"><h3>Zdrojový materiál</h3><button type="button" class="ghost-button" @click="addMaterial">+ Odroda</button></div><div v-for="(material, index) in form.sourceMaterials" :key="index" class="material-row span-2"><label>Odroda<input v-model="material.grapeVariety" required></label><label>Podiel %<input v-model.number="material.percentage" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" required></label><label>Hmotnosť kg<input v-model.number="material.weightKg" type="number" min="0" step="0.1" inputmode="decimal"></label><label>Objem l<input v-model.number="material.volumeLiters" type="number" min="0" step="0.1" inputmode="decimal"></label><label>Cukornatosť °NM<input v-model.number="material.harvestSugar" type="number" min="0" step="0.1" inputmode="decimal"></label></div><p v-if="errorMessage" class="form-error span-2">{{ errorMessage }}</p><button class="primary-button span-2" :disabled="saving">{{ saving ? 'Ukladám…' : 'Vytvoriť víno' }}</button></div></form></div></section></template>
+
+<template>
+  <section>
+    <PageHeading eyebrow="Portfólio pivnice" title="Moje vína" :description="`${wines?.length || 0} vín naprieč všetkými ročníkmi`">
+      <NuxtLink class="primary-button" to="/wines/new"><AppIcon name="plus" /> Vytvoriť</NuxtLink>
+    </PageHeading>
+
+    <div class="toolbar wines-toolbar">
+      <label class="search-field">
+        <AppIcon name="search" :size="25" />
+        <input v-model="search" aria-label="Hľadať víno" placeholder="Hľadať podľa názvu, ročníka alebo kódu…">
+      </label>
+      <div class="portfolio-summary">
+        <span><strong>{{ (batches || []).filter(batch => batch.status === 'ACTIVE').length }}</strong><small>aktívnych šarží</small></span>
+        <span><strong>{{ totalVolume.toLocaleString('sk-SK') }} l</strong><small>vo výrobe</small></span>
+      </div>
+    </div>
+
+    <div class="wine-grid">
+      <NuxtLink
+        v-for="wine in filtered"
+        :key="wine.id"
+        class="wine-portfolio-card"
+        :class="wine.color.toLowerCase()"
+        :to="`/wines/${wine.id}`"
+      >
+        <div class="wine-year-rail">
+          <AppIcon name="wine" :size="34" />
+          <strong>{{ wine.vintageYear }}</strong>
+        </div>
+        <div class="wine-card-content">
+          <div class="wine-card-meta">
+            <span>{{ wine.code }}</span>
+            <span>{{ wineColorLabels[wine.color] }}</span>
+          </div>
+          <h2>{{ wine.name }}</h2>
+          <p>{{ wine.notes || 'Bez doplňujúcej poznámky.' }}</p>
+          <div class="wine-metrics">
+            <span><strong>{{ wineStats(wine).count }}</strong><small>aktívne šarže</small></span>
+            <span><strong>{{ wineStats(wine).volume.toLocaleString('sk-SK') }} l</strong><small>aktuálny objem</small></span>
+          </div>
+          <div class="wine-card-footer">
+            <small>Ročník {{ wine.vintageYear }}</small>
+            <strong>Detail <AppIcon name="arrow" :size="14" /></strong>
+          </div>
+        </div>
+      </NuxtLink>
+    </div>
+
+    <p v-if="filtered.length === 0" class="empty-state">Nenašlo sa žiadne víno.</p>
+  </section>
+</template>

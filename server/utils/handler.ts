@@ -7,6 +7,7 @@ import { toHttpError } from './errors'
 export interface AuthContext {
   userId: string
   userName: string
+  userEmail: string
   cellarId: string
   cellarName: string
 }

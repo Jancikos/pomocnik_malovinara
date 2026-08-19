@@ -1,5 +1,5 @@
 interface AuthState {
-  user: { id: string; name: string }
+  user: { id: string; name: string; email: string }
   cellar: { id: string; name: string }
 }
 

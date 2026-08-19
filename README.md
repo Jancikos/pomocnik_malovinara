@@ -1,22 +1,71 @@
 # Vinársky Pomocník
 
-Mobilne orientovaná full-stack aplikácia pre evidenciu vín, nádob, výrobných šarží, meraní, zásahov a presunov v malej pivnici.
+Mobilne orientovaná full-stack aplikácia na evidenciu vín, vstupných surovín, nádob, výrobných šarží, meraní, zásahov a presunov v malej pivnici.
 
-## Architektúra
+## Technológie a architektúra
 
-Aplikácia používa Nuxt 4 pre Vue frontend aj Nitro API. Aplikačné dáta sú uložené iba v serverovej SQLite databáze cez Drizzle ORM.
+Projekt používa Nuxt 4 a Vue 3 pre používateľské rozhranie, Nitro pre serverové API, SQLite ako databázu a Drizzle ORM pre databázovú schému a migrácie. Kód je písaný v TypeScripte.
+
+Typický tok požiadavky:
 
 ```text
-Nuxt page → composable → Nitro API → service → repository → Drizzle → SQLite
+Nuxt stránka → composable → Nitro API → service → repository → Drizzle → SQLite
 ```
 
-Doménové enumy a DTO sú v `shared/`. Business pravidlá a transakcie sú v `server/services/`, databázové dotazy v `server/repositories/` a schéma v `server/database/schema.ts`.
+Serverová SQLite databáza je jediný zdroj dát. Prihlásenie používa serverovú session uloženú v HTTP-only cookie. Dáta každej požiadavky sú na serveri obmedzené podľa členstva používateľa v pivnici.
 
-## Lokálny vývoj
+## Štruktúra projektu
 
-Požiadavka: Node.js 22.18 alebo novší.
+```text
+app/                         používateľské rozhranie
+  assets/                    globálne štýly
+  components/                znovupoužiteľné Vue komponenty
+  composables/               klientská logika a volania API
+  layouts/                   spoločné rozloženie stránok
+  middleware/                ochrana stránok a navigácia
+  pages/                     stránky a URL aplikácie
 
-```sh
+server/                      serverová časť
+  api/                       HTTP API endpointy
+  database/                  pripojenie, schéma, migrácie a seed
+  repositories/              databázové dotazy
+  services/                  doménové pravidlá a transakcie
+  utils/                     autentifikácia a pomocné funkcie
+
+shared/                      typy, enumy a DTO spoločné pre klienta a server
+drizzle/migrations/          verzované SQL migrácie
+data/                        lokálne SQLite súbory (necommitujú sa)
+docs/                        doplnková projektová dokumentácia
+public/                      verejné statické súbory
+```
+
+### Kde robiť zmeny
+
+- Obrazovky a formuláre upravuj v `app/pages` a `app/components`.
+- Klientské volania API patria do `app/composables`.
+- Nové HTTP endpointy pridávaj do `server/api`.
+- Biznis pravidlá drž v `server/services`, nie vo Vue komponentoch.
+- Databázové dotazy patria do `server/repositories`.
+- Schému upravuj v `server/database/schema.ts` a zmenu zachyť novou migráciou.
+- Spoločné doménové typy, enumy a DTO patria do `shared/`.
+
+## Spustenie na vývoj
+
+Požiadavka: Node.js 22.18 alebo novší a npm.
+
+### Windows PowerShell
+
+```powershell
+npm ci
+Copy-Item .env.example .env
+npm run db:migrate
+npm run db:seed
+npm run dev
+```
+
+### Linux a macOS
+
+```bash
 npm ci
 cp .env.example .env
 npm run db:migrate
@@ -24,33 +73,73 @@ npm run db:seed
 npm run dev
 ```
 
-Demo účet:
+Aplikácia bude dostupná na [http://localhost:3000](http://localhost:3000).
+
+Demo účet vytvorený seedom:
 
 ```text
-oskar@example.sk
-vino2026
+E-mail: oskar@example.sk
+Heslo: vino2026
 ```
 
-Prihlásenie používa serverovú session a HTTP-only cookie. Dáta každej požiadavky sú na serveri scopeované cez membership používateľa v pivnici.
+Ak už `.env` existuje alebo databáza obsahuje dáta, konfiguráciu a seed netreba opakovať. Po stiahnutí zmien je vhodné znovu spustiť migrácie.
 
-## Databáza a migrácie
+## Konfigurácia a databáza
 
-Cestu určuje `DATABASE_URL`. Vývojová hodnota je `./data/dev.sqlite`. Pre produkciu použite cestu na persistentnom filesysteme mimo repozitára a mimo `.output`, napríklad:
+Lokálne nastavenia sú v súbore `.env`; vzor poskytuje `.env.example`. Premenná `DATABASE_URL` určuje umiestnenie SQLite databázy.
 
-```env
-DATABASE_URL=/var/lib/vinarsky-pomocnik/database.sqlite
+Vývojová hodnota:
+
+```dotenv
+DATABASE_URL=./data/dev.sqlite
 ```
 
-Novú migráciu vytvorí `npm run db:generate`, existujúce migrácie aplikuje `npm run db:migrate`. SQLite používa foreign keys, busy timeout a WAL režim.
+Súbor `.env` ani SQLite databázové súbory necommituj. SQLite používa foreign keys, busy timeout a WAL režim.
 
-## Overenie
+Po úprave `server/database/schema.ts` vytvor a aplikuj migráciu:
 
-```sh
+```powershell
+npm run db:generate
+npm run db:migrate
+```
+
+## Užitočné príkazy
+
+```text
+npm run dev          vývojový server s automatickým obnovením
+npm run typecheck    kontrola TypeScriptu
+npm run lint         kontrola kvality a štýlu kódu
+npm test             jednorazové spustenie testov
+npm run test:watch   testy vo watch režime
+npm run build        produkčný build
+npm run preview      lokálna ukážka produkčného buildu
+npm run db:generate  vytvorenie migrácie zo zmenenej schémy
+npm run db:migrate   aplikovanie databázových migrácií
+npm run db:seed      vloženie ukážkových dát
+```
+
+Pred odovzdaním zmeny spusti:
+
+```powershell
 npm run typecheck
 npm run lint
 npm test
 npm run build
 ```
+
+## Doménové pravidlá
+
+Hlavné entity sú používateľ, pivnica, členstvo, víno, vstupná surovina, nádoba, šarža, meranie, zásah a presun.
+
+Dôležité pravidlá:
+
+- V jednej nádobe môže byť najviac jedna aktívna šarža.
+- Merania sú append-only; oprava alebo nová hodnota vytvorí nový záznam.
+- API vie vrátiť poslednú hodnotu každého typu merania.
+- Obsadenú nádobu nie je možné bežne odstrániť.
+- Uzavretie šarže a presuny rešpektujú objem, kapacitu a históriu.
+- Presuny obsahu medzi nádobami prebiehajú transakčne.
+- `DELETE /api/batches/:id` vyžaduje potvrdenie `FORCE DELETE` a odmietne vymazanie šarže s históriou alebo následníkmi.
 
 Testy pokrývajú generovanie ID, append-only merania, latest-per-type, uzavretie, odkalenie, single aj multi-destination stáčanie, objemovú bilanciu, kapacitu, lineage a ochranu force delete.
 
@@ -66,15 +155,33 @@ Testy pokrývajú generovanie ID, append-only merania, latest-per-type, uzavreti
 - `POST /api/batches/:id/interventions`
 - `POST /api/transfers`
 
-`DELETE /api/batches/:id` vyžaduje potvrdenie `FORCE DELETE` a odmietne vymazanie šarže s históriou alebo následníkmi.
+## Produkčný build a nasadenie
 
-## Produkčné spustenie
+Projekt je určený pre jednu klasickú Node/Nitro serverovú inštanciu a SQLite súbor na trvalom disku. Nie je vhodný na čisto serverless alebo edge hosting bez perzistentného súborového úložiska.
 
-Projekt cieli na jeden klasický Node/Nitro server a jeden SQLite súbor na persistentnom filesysteme:
+Základný deployment postup:
 
-```sh
+```bash
 npm ci
 npm run db:migrate
 npm run build
 node .output/server/index.mjs
 ```
+
+Na serveri nastav minimálne:
+
+- `NODE_ENV=production`
+- `DATABASE_URL` na absolútnu cestu k SQLite súboru na trvalom disku
+- `HOST` a `PORT` podľa hostingu
+
+Príklad:
+
+```bash
+NODE_ENV=production \
+DATABASE_URL=/var/lib/vinarsky-pomocnik/database.sqlite \
+HOST=0.0.0.0 \
+PORT=3000 \
+node .output/server/index.mjs
+```
+
+Adresár databázy musí existovať a proces aplikácie doň musí mať právo zapisovať. Databázu pravidelne zálohuj. Pri nasadení novej verzie najskôr aplikuj migrácie a až potom spusti nový build. Node proces je vhodné spravovať cez systemd, správcu procesov alebo kontajner a pred aplikáciu umiestniť reverzný proxy server s HTTPS.

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "b7d3b310-6e36-47f5-9446-b3da6a90e1a5",
+  "id": "d0be956b-ea4f-4ae4-bdde-71f0c97845ac",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "batches": {
@@ -35,11 +35,32 @@
           "notNull": true,
           "autoincrement": false
         },
-        "vessel_id": {
-          "name": "vessel_id",
+        "vessel_name": {
+          "name": "vessel_name",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "vessel_type": {
+          "name": "vessel_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "vessel_capacity": {
+          "name": "vessel_capacity",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "vessel_location": {
+          "name": "vessel_location",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "parent_batch_id": {
@@ -117,13 +138,22 @@
           ],
           "isUnique": false
         },
-        "batches_vessel_status_idx": {
-          "name": "batches_vessel_status_idx",
+        "batches_vessel_name_idx": {
+          "name": "batches_vessel_name_idx",
           "columns": [
-            "vessel_id",
-            "status"
+            "cellar_id",
+            "vessel_name"
           ],
           "isUnique": false
+        },
+        "batches_one_active_per_vessel_name": {
+          "name": "batches_one_active_per_vessel_name",
+          "columns": [
+            "cellar_id",
+            "vessel_name"
+          ],
+          "isUnique": true,
+          "where": "\"batches\".\"status\" = 'ACTIVE'"
         }
       },
       "foreignKeys": {
@@ -146,19 +176,6 @@
           "tableTo": "wines",
           "columnsFrom": [
             "wine_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        },
-        "batches_vessel_id_vessels_id_fk": {
-          "name": "batches_vessel_id_vessels_id_fk",
-          "tableFrom": "batches",
-          "tableTo": "vessels",
-          "columnsFrom": [
-            "vessel_id"
           ],
           "columnsTo": [
             "id"
@@ -537,13 +554,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "vessel_id": {
-          "name": "vessel_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "volume": {
           "name": "volume",
           "type": "real",
@@ -568,14 +578,6 @@
         }
       },
       "indexes": {
-        "transfer_destinations_transfer_vessel_unique": {
-          "name": "transfer_destinations_transfer_vessel_unique",
-          "columns": [
-            "transfer_id",
-            "vessel_id"
-          ],
-          "isUnique": true
-        },
         "transfer_destinations_batch_unique": {
           "name": "transfer_destinations_batch_unique",
           "columns": [
@@ -591,19 +593,6 @@
           "tableTo": "transfers",
           "columnsFrom": [
             "transfer_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        },
-        "transfer_destinations_vessel_id_vessels_id_fk": {
-          "name": "transfer_destinations_vessel_id_vessels_id_fk",
-          "tableFrom": "transfer_destinations",
-          "tableTo": "vessels",
-          "columnsFrom": [
-            "vessel_id"
           ],
           "columnsTo": [
             "id"
@@ -809,97 +798,6 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "vessels": {
-      "name": "vessels",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "cellar_id": {
-          "name": "cellar_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "type": {
-          "name": "type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "capacity": {
-          "name": "capacity",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "location": {
-          "name": "location",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch() * 1000)"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch() * 1000)"
-        }
-      },
-      "indexes": {
-        "vessels_cellar_name_unique": {
-          "name": "vessels_cellar_name_unique",
-          "columns": [
-            "cellar_id",
-            "name"
-          ],
-          "isUnique": true
-        }
-      },
-      "foreignKeys": {
-        "vessels_cellar_id_cellars_id_fk": {
-          "name": "vessels_cellar_id_cellars_id_fk",
-          "tableFrom": "vessels",
-          "tableTo": "cellars",
-          "columnsFrom": [
-            "cellar_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        }
-      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}

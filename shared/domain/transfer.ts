@@ -1,7 +1,13 @@
 import type { BatchPhase } from './batch'
+import type { VesselType } from './vessel'
 
 export interface TransferDestinationInput {
-  vesselId: string
+  vessel: {
+    name: string
+    type: VesselType
+    capacity: number
+    location?: string
+  }
   volume: number
 }
 
@@ -16,11 +22,11 @@ export interface TransferInput {
 
 export function validateVolumeBalance(
   sourceVolume: number,
-  destinations: TransferDestinationInput[],
+  destinations: Array<{ volume: number }>,
   lossVolume: number,
 ): void {
   if (lossVolume < 0) throw new Error('Strata nemôže byť záporná.')
-  if (destinations.length === 0) throw new Error('Vyberte aspoň jednu cieľovú nádobu.')
+  if (destinations.length === 0) throw new Error('Vyplňte aspoň jednu cieľovú nádobu.')
   if (destinations.some((destination) => destination.volume <= 0)) {
     throw new Error('Cieľové objemy musia byť kladné.')
   }

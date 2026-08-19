@@ -1,25 +1,23 @@
 import { and, desc, eq } from 'drizzle-orm'
 import type { Database } from '../database/client'
-import { batches, interventions, measurements, vessels, wines } from '../database/schema'
+import { batches, interventions, measurements, wines } from '../database/schema'
 
 export async function findBatch(db: Database, cellarId: string, id: string) {
   return db.select().from(batches).where(and(eq(batches.id, id), eq(batches.cellarId, cellarId))).get()
 }
 
 export async function listBatchRows(db: Database, cellarId: string) {
-  return db.select({ batch: batches, wine: wines, vessel: vessels })
+  return db.select({ batch: batches, wine: wines })
     .from(batches)
     .innerJoin(wines, eq(batches.wineId, wines.id))
-    .innerJoin(vessels, eq(batches.vesselId, vessels.id))
     .where(eq(batches.cellarId, cellarId))
     .orderBy(desc(batches.openedAt)).all()
 }
 
 export async function findBatchRow(db: Database, cellarId: string, id: string) {
-  return db.select({ batch: batches, wine: wines, vessel: vessels })
+  return db.select({ batch: batches, wine: wines })
     .from(batches)
     .innerJoin(wines, eq(batches.wineId, wines.id))
-    .innerJoin(vessels, eq(batches.vesselId, vessels.id))
     .where(and(eq(batches.cellarId, cellarId), eq(batches.id, id))).get()
 }
 
@@ -32,7 +30,7 @@ export async function listBatchInterventions(db: Database, batchId: string) {
 }
 
 export async function listBatchChildren(db: Database, batchId: string) {
-  return db.select({ id: batches.id, phase: batches.phase, vesselName: vessels.name, volume: batches.volume })
-    .from(batches).innerJoin(vessels, eq(batches.vesselId, vessels.id))
+  return db.select({ id: batches.id, phase: batches.phase, vesselName: batches.vesselName, volume: batches.volume })
+    .from(batches)
     .where(eq(batches.parentBatchId, batchId)).all()
 }

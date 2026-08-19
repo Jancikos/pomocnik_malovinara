@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm'
 import { BatchPhase, BatchStatus, InterventionType, MeasurementType, VesselType, WineColor, measurementUnits } from '../../shared/domain'
 import { hashPassword } from '../utils/password'
 import type { Database } from './client'
-import { batches, cellarMembers, cellars, interventions, measurements, users, vessels, wineSourceMaterials, wines } from './schema'
+import { batches, cellarMembers, cellars, interventions, measurements, users, wineSourceMaterials, wines } from './schema'
 
 export async function seedDevelopmentData(db: Database): Promise<void> {
   const existing = await db.select({ id: users.id }).from(users).where(eq(users.email, 'oskar@example.sk')).get()
@@ -24,17 +24,46 @@ export async function seedDevelopmentData(db: Database): Promise<void> {
       { id: 'material-rv-2', wineId: 'wine-rv', grapeVariety: 'Veltlínske zelené', percentage: 30, weightKg: 150, volumeLiters: 110, harvestSugar: 19 },
       { id: 'material-fr-1', wineId: 'wine-fr', grapeVariety: 'Frankovka modrá', percentage: 100, weightKg: 430, volumeLiters: 320, harvestSugar: 21 },
     ]).run()
-    tx.insert(vessels).values([
-      { id: 'vessel-t1', cellarId: 'cellar-oskar', name: 'Tank T1', type: VesselType.STEEL_TANK, capacity: 500, location: 'Hlavná miestnosť' },
-      { id: 'vessel-t2', cellarId: 'cellar-oskar', name: 'Tank T2', type: VesselType.STEEL_TANK, capacity: 300, location: 'Hlavná miestnosť' },
-      { id: 'vessel-s1', cellarId: 'cellar-oskar', name: 'Sud S1', type: VesselType.OAK_BARREL, capacity: 225, location: 'Zadná stena' },
-      { id: 'vessel-k1', cellarId: 'cellar-oskar', name: 'Kaďa K1', type: VesselType.PLASTIC_VAT, capacity: 450, location: 'Lisovňa' },
-      { id: 'vessel-d1', cellarId: 'cellar-oskar', name: 'Demižón D1', type: VesselType.DEMIJOHN, capacity: 50, location: 'Polica' },
-    ]).run()
     tx.insert(batches).values([
-      { id: '2026-IO-FERMENTATION-001', cellarId: 'cellar-oskar', wineId: 'wine-io', phase: BatchPhase.FERMENTATION, vesselId: 'vessel-t1', volume: 380, status: BatchStatus.ACTIVE, openedAt: new Date('2026-08-01T08:00:00Z') },
-      { id: '2026-RV-CLARIFICATION-001', cellarId: 'cellar-oskar', wineId: 'wine-rv', phase: BatchPhase.CLARIFICATION, vesselId: 'vessel-t2', volume: 280, status: BatchStatus.ACTIVE, openedAt: new Date('2026-08-05T08:00:00Z') },
-      { id: '2026-FR-AGING-001', cellarId: 'cellar-oskar', wineId: 'wine-fr', phase: BatchPhase.AGING, vesselId: 'vessel-s1', volume: 210, status: BatchStatus.ACTIVE, openedAt: new Date('2026-07-25T08:00:00Z') },
+      {
+        id: '2026-IO-FERMENTATION-001',
+        cellarId: 'cellar-oskar',
+        wineId: 'wine-io',
+        phase: BatchPhase.FERMENTATION,
+        vesselName: 'Tank T1',
+        vesselType: VesselType.STEEL_TANK,
+        vesselCapacity: 500,
+        vesselLocation: 'Hlavná miestnosť',
+        volume: 380,
+        status: BatchStatus.ACTIVE,
+        openedAt: new Date('2026-08-01T08:00:00Z'),
+      },
+      {
+        id: '2026-RV-CLARIFICATION-001',
+        cellarId: 'cellar-oskar',
+        wineId: 'wine-rv',
+        phase: BatchPhase.CLARIFICATION,
+        vesselName: 'Tank T2',
+        vesselType: VesselType.STEEL_TANK,
+        vesselCapacity: 300,
+        vesselLocation: 'Hlavná miestnosť',
+        volume: 280,
+        status: BatchStatus.ACTIVE,
+        openedAt: new Date('2026-08-05T08:00:00Z'),
+      },
+      {
+        id: '2026-FR-AGING-001',
+        cellarId: 'cellar-oskar',
+        wineId: 'wine-fr',
+        phase: BatchPhase.AGING,
+        vesselName: 'Sud S1',
+        vesselType: VesselType.OAK_BARREL,
+        vesselCapacity: 225,
+        vesselLocation: 'Zadná stena',
+        volume: 210,
+        status: BatchStatus.ACTIVE,
+        openedAt: new Date('2026-07-25T08:00:00Z'),
+      },
     ]).run()
     tx.insert(measurements).values([
       { id: 'measurement-1', batchId: '2026-IO-FERMENTATION-001', type: MeasurementType.DENSITY, value: 1030, unit: measurementUnits[MeasurementType.DENSITY], measuredAt: now },

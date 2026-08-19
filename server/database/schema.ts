@@ -60,22 +60,15 @@ export const wineSourceMaterials = sqliteTable('wine_source_materials', {
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 }, (table) => [index('source_materials_wine_idx').on(table.wineId)])
 
-export const vessels = sqliteTable('vessels', {
-  id: text('id').primaryKey(),
-  cellarId: text('cellar_id').notNull().references(() => cellars.id, { onDelete: 'restrict' }),
-  name: text('name').notNull(),
-  type: text('type').$type<VesselType>().notNull(),
-  capacity: real('capacity').notNull(),
-  location: text('location'),
-  ...timestamps,
-}, (table) => [uniqueIndex('vessels_cellar_name_unique').on(table.cellarId, table.name)])
-
 export const batches = sqliteTable('batches', {
   id: text('id').primaryKey(),
   cellarId: text('cellar_id').notNull().references(() => cellars.id, { onDelete: 'restrict' }),
   wineId: text('wine_id').notNull().references(() => wines.id, { onDelete: 'restrict' }),
   phase: text('phase').$type<BatchPhase>().notNull(),
-  vesselId: text('vessel_id').notNull().references(() => vessels.id, { onDelete: 'restrict' }),
+  vesselName: text('vessel_name').notNull(),
+  vesselType: text('vessel_type').$type<VesselType>().notNull(),
+  vesselCapacity: real('vessel_capacity').notNull(),
+  vesselLocation: text('vessel_location'),
   parentBatchId: text('parent_batch_id').references((): AnySQLiteColumn => batches.id, { onDelete: 'restrict' }),
   volume: real('volume').notNull(),
   status: text('status').$type<BatchStatus>().notNull(),
@@ -86,7 +79,8 @@ export const batches = sqliteTable('batches', {
   index('batches_cellar_status_idx').on(table.cellarId, table.status),
   index('batches_wine_idx').on(table.wineId),
   index('batches_parent_idx').on(table.parentBatchId),
-  index('batches_vessel_status_idx').on(table.vesselId, table.status),
+  index('batches_vessel_name_idx').on(table.cellarId, table.vesselName),
+  uniqueIndex('batches_one_active_per_vessel_name').on(table.cellarId, table.vesselName).where(sql`${table.status} = 'ACTIVE'`),
 ])
 
 export const measurements = sqliteTable('measurements', {
@@ -123,11 +117,9 @@ export const transfers = sqliteTable('transfers', {
 export const transferDestinations = sqliteTable('transfer_destinations', {
   id: text('id').primaryKey(),
   transferId: text('transfer_id').notNull().references(() => transfers.id, { onDelete: 'restrict' }),
-  vesselId: text('vessel_id').notNull().references(() => vessels.id, { onDelete: 'restrict' }),
   volume: real('volume').notNull(),
   createdBatchId: text('created_batch_id').notNull().references(() => batches.id, { onDelete: 'restrict' }),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 }, (table) => [
-  uniqueIndex('transfer_destinations_transfer_vessel_unique').on(table.transferId, table.vesselId),
   uniqueIndex('transfer_destinations_batch_unique').on(table.createdBatchId),
 ])

@@ -2,12 +2,13 @@ import { and, count, eq } from 'drizzle-orm'
 import { BatchPhase, BatchStatus } from '../../shared/domain'
 import { parseDecimal } from '../../shared/utils/number'
 import type { Database } from '../database/client'
-import { batches, interventions, measurements, transferDestinations, transfers, vessels, wines } from '../database/schema'
+import { batches, interventions, measurements, transferDestinations, transfers, wines } from '../database/schema'
 import { findBatch, findBatchRow, listBatchChildren, listBatchInterventions, listBatchMeasurements, listBatchRows } from '../repositories/batch.repository'
 import { latestMeasurementsByType } from '../repositories/measurement.repository'
 import { DomainError, notFound } from '../utils/errors'
 import { nextBatchIds } from './batch-id'
 import { batchDetailDto, batchSummaryDto, measurementDto } from './dto'
+import { parseVesselSnapshot } from './vessel-snapshot'
 
 export async function getBatches(db: Database, cellarId: string, status?: BatchStatus) {
   const rows = await listBatchRows(db, cellarId)
@@ -35,9 +36,9 @@ export async function getBatch(db: Database, cellarId: string, id: string) {
 
 export function createBatch(db: Database, cellarId: string, body: Record<string, unknown>) {
   const wineId = String(body.wineId || '')
-  const vesselId = String(body.vesselId || '')
   const volume = parseDecimal(body.volume, 'Objem')
   if (volume <= 0) throw new DomainError('Objem musí byť kladný.')
+  const vessel = parseVesselSnapshot(body.vessel, volume)
   const openedAt = body.openedAt ? new Date(String(body.openedAt)) : new Date()
   if (Number.isNaN(openedAt.getTime())) throw new DomainError('Dátum otvorenia nie je platný.')
 
@@ -45,13 +46,23 @@ export function createBatch(db: Database, cellarId: string, body: Record<string,
   db.transaction((tx) => {
     const wine = tx.select().from(wines).where(and(eq(wines.id, wineId), eq(wines.cellarId, cellarId))).get()
     if (!wine) notFound('Víno sa nenašlo.')
-    const vessel = tx.select().from(vessels).where(and(eq(vessels.id, vesselId), eq(vessels.cellarId, cellarId))).get()
-    if (!vessel) notFound('Nádoba sa nenašla.')
-    if (volume > vessel.capacity) throw new DomainError('Objem prekračuje kapacitu nádoby.')
-    const occupied = tx.select({ id: batches.id }).from(batches).where(and(eq(batches.vesselId, vesselId), eq(batches.status, BatchStatus.ACTIVE))).get()
-    if (occupied) throw new DomainError('Nádoba už obsahuje aktívnu šaržu.', 409)
+
+    const occupied = tx.select({ name: batches.vesselName }).from(batches)
+      .where(and(eq(batches.cellarId, cellarId), eq(batches.status, BatchStatus.ACTIVE))).all()
+      .some((item) => item.name.localeCompare(vessel.vesselName, 'sk', { sensitivity: 'base' }) === 0)
+    if (occupied) throw new DomainError('Nádoba s týmto názvom už obsahuje aktívnu šaržu.', 409)
+
     id = nextBatchIds(tx as unknown as Database, { cellarId, year: wine.vintageYear, wineCode: wine.code, phase: BatchPhase.MUST })[0]!
-    tx.insert(batches).values({ id, cellarId, wineId, vesselId, phase: BatchPhase.MUST, volume, status: BatchStatus.ACTIVE, openedAt }).run()
+    tx.insert(batches).values({
+      id,
+      cellarId,
+      wineId,
+      phase: BatchPhase.MUST,
+      ...vessel,
+      volume,
+      status: BatchStatus.ACTIVE,
+      openedAt,
+    }).run()
   })
   return getBatch(db, cellarId, id)
 }

@@ -9,7 +9,6 @@ export async function getDashboard(db: Database, cellar: { id: string; name: str
     summary: {
       activeBatches: batches.length,
       totalVolume: batches.reduce((sum, batch) => sum + batch.volume, 0),
-      occupiedVessels: new Set(batches.map((batch) => batch.vessel.id)).size,
     },
     batches,
   }

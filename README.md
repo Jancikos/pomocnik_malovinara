@@ -1,6 +1,6 @@
 # Vinársky Pomocník
 
-Mobilne orientovaná full-stack aplikácia na evidenciu vín, vstupných surovín, nádob, výrobných šarží, meraní, zásahov a presunov v malej pivnici.
+Mobilne orientovaná full-stack aplikácia na evidenciu vín, vstupných surovín, výrobných šarží, ich nádob, meraní, zásahov a presunov v malej pivnici.
 
 ## Technológie a architektúra
 
@@ -129,26 +129,25 @@ npm run build
 
 ## Doménové pravidlá
 
-Hlavné entity sú používateľ, pivnica, členstvo, víno, vstupná surovina, nádoba, šarža, meranie, zásah a presun.
+Hlavné entity sú používateľ, pivnica, členstvo, víno, vstupná surovina, šarža, meranie, zásah a presun. Nádoba nie je samostatná entita; jej názov, typ, kapacita a umiestnenie sú snapshotom uloženým priamo v šarži.
 
 Dôležité pravidlá:
 
-- V jednej nádobe môže byť najviac jedna aktívna šarža.
+- Pri vytvorení každej šarže sa povinne zadáva názov, typ a kapacita nádoby; umiestnenie je voliteľné.
+- Rovnaký názov nádoby môže mať v pivnici najviac jedna aktívna šarža.
 - Merania sú append-only; oprava alebo nová hodnota vytvorí nový záznam.
 - API vie vrátiť poslednú hodnotu každého typu merania.
-- Obsadenú nádobu nie je možné bežne odstrániť.
 - Uzavretie šarže a presuny rešpektujú objem, kapacitu a históriu.
 - Presuny obsahu medzi nádobami prebiehajú transakčne.
 - `DELETE /api/batches/:id` vyžaduje potvrdenie `FORCE DELETE` a odmietne vymazanie šarže s históriou alebo následníkmi.
 
-Testy pokrývajú generovanie ID, append-only merania, latest-per-type, uzavretie, odkalenie, single aj multi-destination stáčanie, objemovú bilanciu, kapacitu, lineage a ochranu force delete.
+Testy pokrývajú generovanie ID, snapshot nádoby v šarži, ochranu aktívneho názvu nádoby, append-only merania, latest-per-type, uzavretie, odkalenie, single aj multi-destination stáčanie, objemovú bilanciu, kapacitu, lineage a ochranu force delete.
 
 ## Hlavné API
 
 - `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
 - `GET /api/cellar/dashboard`
 - `GET|POST /api/wines`, `GET /api/wines/:id`
-- `GET|POST /api/vessels`, `GET|PATCH /api/vessels/:id`
 - `GET|POST /api/batches`, `GET|DELETE /api/batches/:id`
 - `POST /api/batches/:id/close`
 - `GET|POST /api/batches/:id/measurements`

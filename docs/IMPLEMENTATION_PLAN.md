@@ -37,20 +37,19 @@ Demo autentifikácia sa zachová bez veľkého auth systému: login vytvorí ná
 - `users`, `cellars`, `cellar_members`, `sessions`
 - `wines` (`cellarId`, stabilný `code`, názov, ročník, farba, poznámka)
 - `wine_source_materials` (odroda, podiel, hmotnosť, objem, cukornatosť)
-- `vessels` (pivnica, názov, typ, kapacita, lokalita)
-- `batches` (generované ID, víno, fáza, nádoba, rodič, objem, stav a časové údaje)
+- `batches` (generované ID, víno, fáza, snapshot nádoby — názov, typ, kapacita a lokalita — rodič, objem, stav a časové údaje)
 - `measurements` (append-only typ, hodnota, jednotka, čas merania)
 - `interventions` (povolený typ, čas, poznámka)
 - `transfers` (zdrojová šarža, strata, cieľová fáza, čas)
-- `transfer_destinations` (transfer, nádoba, objem, vzniknutá šarža)
+- `transfer_destinations` (transfer, objem, vzniknutá šarža; cieľová nádoba je snapshot vo vzniknutej šarži)
 
-Aktívna šarža v nádobe je určená z `batches`; obsadenosť sa neukladá duplicitne. Lineage je zachovaný cez `parentBatchId` aj explicitný transfer destination.
+Nádoba sa neeviduje samostatne. Každá šarža uchováva jej snapshot a rovnaký názov nádoby môže mať iba jedna aktívna šarža v pivnici. Lineage je zachovaný cez `parentBatchId` aj explicitný transfer destination.
 
 ## 6. Migračné kroky
 
 1. Zaviesť Nuxt konfiguráciu, shared enumy/DTO a validačné utility.
 2. Pridať Drizzle SQLite schému, SQL migráciu, DB klienta, WAL a idempotentný vývojový seed.
-3. Implementovať repositories a služby pre vína, nádoby, šarže, merania, zásahy, dashboard a transfer.
+3. Implementovať repositories a služby pre vína, šarže so snapshotom nádoby, merania, zásahy, dashboard a transfer.
 4. Pokryť generovanie ID a všetky viac-krokové operácie SQLite transakciami.
 5. Pridať Nitro API a serverovú session/membership kontrolu.
 6. Migrovať obrazovky na Nuxt pages a `$fetch` composables, pričom zachovať mobilný vizuál.

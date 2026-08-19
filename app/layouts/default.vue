@@ -4,7 +4,6 @@ const auth = useAuth()
 const navigation = [
   { to: '/cellar', label: 'Pivnica', icon: '⌂' },
   { to: '/wines', label: 'Vína', icon: '◉' },
-  { to: '/vessels', label: 'Nádoby', icon: '▣' },
   { to: '/batches', label: 'Šarže', icon: '≋' },
 ]
 </script>

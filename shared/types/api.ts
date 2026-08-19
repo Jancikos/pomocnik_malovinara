@@ -8,13 +8,11 @@ export interface LatestMeasurementDto {
   measuredAt: string
 }
 
-export interface VesselDto {
-  id: string
+export interface VesselSnapshotDto {
   name: string
   type: VesselType
   capacity: number
   location: string | null
-  activeVolume?: number
 }
 
 export interface WineDto {
@@ -43,7 +41,7 @@ export interface BatchSummaryDto {
   phase: BatchPhase
   status: BatchStatus
   volume: number
-  vessel: VesselDto
+  vessel: VesselSnapshotDto
   latestMeasurements: Partial<Record<MeasurementType, LatestMeasurementDto>>
   parentBatchId: string | null
   openedAt: string

@@ -89,6 +89,7 @@ input, select, textarea { width: 100%; min-height: 52px; padding: 0 14px; border
 textarea { padding-top: 12px; resize: vertical; }
 input:focus, select:focus, textarea:focus { border-color: rgba(212,174,104,.65); box-shadow: 0 0 0 3px rgba(212,174,104,.08); }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-section-title { margin: 8px 0 0; padding-top: 18px; border-top: 1px solid var(--line); font-size: 1.25rem; }
 .span-2 { grid-column: 1/-1; }
 .narrow-page { width: min(760px, 100%); margin: auto; }
 .back-link { min-height: 48px; display: inline-flex; align-items: center; margin-bottom: 16px; color: var(--muted); }
@@ -124,7 +125,10 @@ input:focus, select:focus, textarea:focus { border-color: rgba(212,174,104,.65);
 .text-button { min-height: 42px; border: 0; background: none; color: var(--gold); cursor: pointer; font-weight: 700; }
 .danger-zone { display: grid; justify-items: start; gap: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(229,104,104,.2); }
 .inline-form { display: flex; gap: 10px; }
-.destination-row { display: grid; grid-template-columns: 1fr 150px 44px; align-items: end; gap: 10px; margin-bottom: 12px; }
+.destination-card { display: grid; gap: 14px; margin: 0 0 14px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; }
+.destination-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.destination-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.danger-text { color: var(--danger); }
 .icon-button { width: 44px; height: 52px; border: 1px solid var(--line); border-radius: 12px; background: transparent; cursor: pointer; font-size: 22px; }
 .transfer-meta { margin: 18px 0; }
 .transfer-summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 16px 0; }
@@ -155,7 +159,8 @@ input:focus, select:focus, textarea:focus { border-color: rgba(212,174,104,.65);
   .hero-volume { grid-column: 2; }
   .span-panel { grid-column: auto; }
   .sheet { padding: 22px 18px 32px; }
-  .destination-row { grid-template-columns: 1fr 110px 44px; }
+  .destination-fields { grid-template-columns: 1fr; }
+  .destination-fields .span-2 { grid-column: auto; }
   .transfer-summary { grid-template-columns: 1fr; }
   .inline-form { display: grid; }
 }

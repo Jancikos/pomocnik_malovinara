@@ -1,5 +1,5 @@
-import type { BatchDetailDto, BatchSummaryDto, LatestMeasurementDto, MeasurementDto } from '../../shared/types/api'
 import type { MeasurementType } from '../../shared/domain'
+import type { BatchDetailDto, BatchSummaryDto, LatestMeasurementDto, MeasurementDto } from '../../shared/types/api'
 
 export function measurementDto(row: { id: string; batchId: string; type: MeasurementType; value: number; unit: string; measuredAt: Date; createdAt: Date }): MeasurementDto {
   return { id: row.id, batchId: row.batchId, type: row.type, value: row.value, unit: row.unit, measuredAt: row.measuredAt.toISOString(), createdAt: row.createdAt.toISOString() }
@@ -19,7 +19,12 @@ export function batchSummaryDto(row: any, latest: Partial<Record<MeasurementType
     phase: row.batch.phase,
     status: row.batch.status,
     volume: row.batch.volume,
-    vessel: { id: row.vessel.id, name: row.vessel.name, type: row.vessel.type, capacity: row.vessel.capacity, location: row.vessel.location },
+    vessel: {
+      name: row.batch.vesselName,
+      type: row.batch.vesselType,
+      capacity: row.batch.vesselCapacity,
+      location: row.batch.vesselLocation,
+    },
     latestMeasurements: latestDto(latest),
     parentBatchId: row.batch.parentBatchId,
     openedAt: row.batch.openedAt.toISOString(),

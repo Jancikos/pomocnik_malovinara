@@ -453,6 +453,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(224,185,95,.62); 
 .data-row b small { color: var(--muted); font-weight: 500; }
 .text-button { min-height: 42px; border: 0; background: none; color: var(--gold); cursor: pointer; font-weight: 800; }
 .danger-zone { display: grid; justify-items: start; gap: 12px; margin-top: 32px; padding-top: 22px; border-top: 1px solid rgba(237,110,117,.2); }
+.admin-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .inline-form { display: flex; gap: 10px; }
 .ciel-card { display: grid; gap: 14px; margin: 0 0 14px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; }
 .ciel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

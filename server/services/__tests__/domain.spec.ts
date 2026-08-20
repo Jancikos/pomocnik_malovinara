@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { FazaSarze, StavSarze, TypZasahu, TypMerania, TypNadoby, FarbaVina } from '../../../shared/domain'
 import { createDatabase, type DatabaseContext } from '../../database/client'
 import { sarze, clenoviaPivnice, pivnice, merania, cielePresunu, presuny, users, vina, vstupneSurovinyVina } from '../../database/schema'
-import { uzavriSarzu, vytvorSarzu, vynutVymazanieSarze, nacitajSarzu } from '../sarza.service'
+import { uzavriSarzu, vytvorSarzu, vynutVymazanieSarze, nacitajSarzu, upravZakladSarze } from '../sarza.service'
 import { vytvorZasah } from '../zasah.service'
 import { vytvorMeranie } from '../meranie.service'
 import { presunSarzu } from '../presun.service'
@@ -153,6 +153,38 @@ describe('sarza lifecycle services', () => {
       nadoba: nadoba('tank t1'),
       volume: 80,
     })).toThrow('aktívnu šaržu')
+  })
+
+  it('upraví základné údaje existujúcej šarže', async () => {
+    const id = await vlozSarzu(FazaSarze.MUST)
+    const updated = await upravZakladSarze(context.db, 'pivnica-1', id, {
+      vinoId: 'vino-1',
+      faza: FazaSarze.KVASENIE,
+      nadoba: nadoba('Sud 200L', 200, TypNadoby.DREVENY_SUD),
+      volume: 120,
+      openedAt: '2026-08-02T10:30:00Z',
+    })
+
+    expect(updated).toMatchObject({ id, faza: FazaSarze.KVASENIE, volume: 120 })
+    expect(updated.nadoba).toEqual({
+      name: 'Sud 200L',
+      type: TypNadoby.DREVENY_SUD,
+      capacity: 200,
+      location: 'Testovacia miestnosť',
+    })
+  })
+
+  it('pri úprave odmietne názov už obsadenej aktívnej nádoby', async () => {
+    const firstId = await vlozSarzu(FazaSarze.MUST, 100, 'Tank T1')
+    const secondId = await vlozSarzu(FazaSarze.KVASENIE, 80, 'Tank T2', '2026-IO-KVASENIE-002')
+
+    expect(() => upravZakladSarze(context.db, 'pivnica-1', secondId, {
+      vinoId: 'vino-1',
+      faza: FazaSarze.KVASENIE,
+      nadoba: nadoba('tank t1'),
+      volume: 80,
+    })).toThrow('aktívnu šaržu')
+    expect((await nacitajSarzu(context.db, 'pivnica-1', firstId)).nadoba.name).toBe('Tank T1')
   })
 
   it('merania iba pridáva a vracia posledné meranie daného typu', async () => {

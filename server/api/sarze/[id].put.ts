@@ -1,0 +1,2 @@
+import { upravZakladSarze } from '../../services/sarza.service'
+export default defineEventHandler((event) => withAuth(event, async (db, context) => upravZakladSarze(db, context.pivnicaId, getRouterParam(event, 'id')!, await readBody(event))))

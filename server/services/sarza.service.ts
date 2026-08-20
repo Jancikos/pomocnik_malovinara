@@ -1,4 +1,4 @@
-import { and, count, eq } from 'drizzle-orm'
+import { and, count, eq, ne } from 'drizzle-orm'
 import { FazaSarze, StavSarze } from '../../shared/domain'
 import { parseDecimal } from '../../shared/utils/number'
 import type { Database } from '../database/client'
@@ -34,7 +34,7 @@ export async function nacitajSarzu(db: Database, pivnicaId: string, id: string) 
   )
 }
 
-export function vytvorSarzu(db: Database, pivnicaId: string, body: Record<string, unknown>) {
+function parseZakladSarzeInput(body: Record<string, unknown>) {
   const vinoId = String(body.vinoId || '')
   const faza = body.faza as FazaSarze
   if (!Object.values(FazaSarze).includes(faza)) throw new DomainError('Fáza šarže nie je platná.')
@@ -43,29 +43,60 @@ export function vytvorSarzu(db: Database, pivnicaId: string, body: Record<string
   const nadoba = nacitajSnapshotNadoby(body.nadoba, volume)
   const openedAt = body.openedAt ? new Date(String(body.openedAt)) : new Date()
   if (Number.isNaN(openedAt.getTime())) throw new DomainError('Dátum otvorenia nie je platný.')
+  return { vinoId, faza, volume, nadoba, openedAt }
+}
+
+function assertNadobaJeVolna(db: Database, pivnicaId: string, nazovNadoby: string, excludeId?: string) {
+  const query = excludeId
+    ? and(eq(sarze.pivnicaId, pivnicaId), eq(sarze.status, StavSarze.AKTIVNA), ne(sarze.id, excludeId))
+    : and(eq(sarze.pivnicaId, pivnicaId), eq(sarze.status, StavSarze.AKTIVNA))
+  const occupied = db.select({ name: sarze.nazovNadoby }).from(sarze)
+    .where(query).all()
+    .some((item) => item.name.localeCompare(nazovNadoby, 'sk', { sensitivity: 'base' }) === 0)
+  if (occupied) throw new DomainError('Nádoba s týmto názvom už obsahuje aktívnu šaržu.', 409)
+}
+
+export function vytvorSarzu(db: Database, pivnicaId: string, body: Record<string, unknown>) {
+  const parsed = parseZakladSarzeInput(body)
 
   let id = ''
   db.transaction((tx) => {
-    const vino = tx.select().from(vina).where(and(eq(vina.id, vinoId), eq(vina.pivnicaId, pivnicaId))).get()
+    const vino = tx.select().from(vina).where(and(eq(vina.id, parsed.vinoId), eq(vina.pivnicaId, pivnicaId))).get()
     if (!vino) notFound('Víno sa nenašlo.')
 
-    const occupied = tx.select({ name: sarze.nazovNadoby }).from(sarze)
-      .where(and(eq(sarze.pivnicaId, pivnicaId), eq(sarze.status, StavSarze.AKTIVNA))).all()
-      .some((item) => item.name.localeCompare(nadoba.nazovNadoby, 'sk', { sensitivity: 'base' }) === 0)
-    if (occupied) throw new DomainError('Nádoba s týmto názvom už obsahuje aktívnu šaržu.', 409)
+    assertNadobaJeVolna(tx as unknown as Database, pivnicaId, parsed.nadoba.nazovNadoby)
 
-    id = dalsieIdSarzi(tx as unknown as Database, { pivnicaId, year: vino.rocnik, kodVina: vino.code, faza })[0]!
+    id = dalsieIdSarzi(tx as unknown as Database, { pivnicaId, year: vino.rocnik, kodVina: vino.code, faza: parsed.faza })[0]!
     tx.insert(sarze).values({
       id,
       pivnicaId,
-      vinoId,
-      faza,
-      ...nadoba,
-      volume,
+      vinoId: parsed.vinoId,
+      faza: parsed.faza,
+      ...parsed.nadoba,
+      volume: parsed.volume,
       status: StavSarze.AKTIVNA,
-      openedAt,
+      openedAt: parsed.openedAt,
     }).run()
   })
+  return nacitajSarzu(db, pivnicaId, id)
+}
+
+export function upravZakladSarze(db: Database, pivnicaId: string, id: string, body: Record<string, unknown>) {
+  const existing = db.select().from(sarze).where(and(eq(sarze.id, id), eq(sarze.pivnicaId, pivnicaId))).get()
+  if (!existing) notFound('Šarža sa nenašla.')
+  const parsed = parseZakladSarzeInput(body)
+  const vino = db.select({ id: vina.id }).from(vina).where(and(eq(vina.id, parsed.vinoId), eq(vina.pivnicaId, pivnicaId))).get()
+  if (!vino) notFound('Víno sa nenašlo.')
+  if (existing.status === StavSarze.AKTIVNA) assertNadobaJeVolna(db, pivnicaId, parsed.nadoba.nazovNadoby, id)
+
+  db.update(sarze).set({
+    vinoId: parsed.vinoId,
+    faza: parsed.faza,
+    ...parsed.nadoba,
+    volume: parsed.volume,
+    openedAt: parsed.openedAt,
+    updatedAt: new Date(),
+  }).where(and(eq(sarze.id, id), eq(sarze.pivnicaId, pivnicaId))).run()
   return nacitajSarzu(db, pivnicaId, id)
 }
 

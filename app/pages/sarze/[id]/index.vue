@@ -197,14 +197,14 @@ async function forceDelete() {
         </div>
       </div>
 
-      <p v-if="actionError" class="form-error">{{ actionError }}</p>
-      <div v-if="sarza.status === StavSarze.AKTIVNA" class="action-bar">
-        <button class="primary-button" @click="showActionMenu = true"><AppIcon name="plus" /> Zaznamenať</button>
-        <button v-if="cielovaFaza" class="secondary-button" @click="showPresun = true">
+      <div class="action-bar">
+        <button v-if="sarza.status === StavSarze.AKTIVNA" class="primary-button" @click="showActionMenu = true"><AppIcon name="plus" /> Zaznamenať</button>
+        <button v-if="sarza.status === StavSarze.AKTIVNA && cielovaFaza" class="secondary-button" @click="showPresun = true">
           <AppIcon name="sarze" /> {{ nazvyZasahov[typPresunu] }} a presun
         </button>
-        <button class="ghost-button" @click="uzavriSarzu">Uzavrieť šaržu</button>
+        <button v-if="sarza.status === StavSarze.AKTIVNA" class="ghost-button" @click="uzavriSarzu">Uzavrieť šaržu</button>
       </div>
+      <p v-if="actionError" class="form-error">{{ actionError }}</p>
 
       <div class="detail-columns">
         <section class="panel">
@@ -256,7 +256,10 @@ async function forceDelete() {
       </div>
 
       <section class="danger-zone">
-        <button class="danger-button" @click="showDanger = !showDanger">Administratívne FORCE delete</button>
+        <div class="admin-actions">
+          <NuxtLink class="ghost-button" :to="`/sarze/${sarza.id}/edit`"><AppIcon name="edit" /> Upraviť základ</NuxtLink>
+          <button class="danger-button" @click="showDanger = !showDanger">Administratívne FORCE delete</button>
+        </div>
         <div v-if="showDanger" class="panel">
           <p>Vymazanie je možné iba bez meraní, zásahov, presunov a následníkov. Zadajte <b>FORCE DELETE</b>.</p>
           <div class="inline-form">

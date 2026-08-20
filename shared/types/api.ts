@@ -1,69 +1,69 @@
-import type { BatchPhase, BatchStatus, InterventionType, MeasurementType, VesselType, WineColor } from '../domain'
+import type { FazaSarze, StavSarze, TypZasahu, TypMerania, TypNadoby, FarbaVina } from '../domain'
 
-export interface LatestMeasurementDto {
+export interface PosledneMeranieDto {
   id: string
-  type: MeasurementType
+  type: TypMerania
   value: number
   unit: string
-  measuredAt: string
+  zmeraneAt: string
 }
 
-export interface VesselSnapshotDto {
+export interface SnapshotNadobyDto {
   name: string
-  type: VesselType
+  type: TypNadoby
   capacity: number
   location: string | null
 }
 
-export interface WineDto {
+export interface VinoDto {
   id: string
   name: string
   code: string
-  vintageYear: number
-  color: WineColor
+  rocnik: number
+  color: FarbaVina
   notes: string | null
-  sourceMaterials?: Array<{
+  vstupneSuroviny?: Array<{
     id: string
-    grapeVariety: string
+    odrodaHrozna: string
     percentage: number
     weightKg: number | null
     volumeLiters: number | null
-    harvestSugar: number | null
+    cukornatostPriZbere: number | null
   }>
 }
 
-export interface BatchSummaryDto {
+export interface PrehladSarzeDto {
   id: string
-  wineId: string
-  wineName: string
-  wineCode: string
-  vintageYear: number
-  phase: BatchPhase
-  status: BatchStatus
+  vinoId: string
+  nazovVina: string
+  kodVina: string
+  rocnik: number
+  faza: FazaSarze
+  status: StavSarze
   volume: number
-  vessel: VesselSnapshotDto
-  latestMeasurements: Partial<Record<MeasurementType, LatestMeasurementDto>>
-  parentBatchId: string | null
+  nadoba: SnapshotNadobyDto
+  posledneMerania: Partial<Record<TypMerania, PosledneMeranieDto>>
+  rodicovskaSarzaId: string | null
   openedAt: string
   closedAt: string | null
 }
 
-export interface MeasurementDto extends LatestMeasurementDto {
-  batchId: string
+export interface MeranieDto extends PosledneMeranieDto {
+  sarzaId: string
   createdAt: string
 }
 
-export interface InterventionDto {
+export interface ZasahDto {
   id: string
-  batchId: string
-  type: InterventionType
-  performedAt: string
+  sarzaId: string
+  type: TypZasahu
+  vykonaneAt: string
   notes: string | null
   createdAt: string
 }
 
-export interface BatchDetailDto extends BatchSummaryDto {
-  measurements: MeasurementDto[]
-  interventions: InterventionDto[]
-  children: Array<{ id: string; phase: BatchPhase; vesselName: string; volume: number }>
+export interface DetailSarzeDto extends PrehladSarzeDto {
+  merania: MeranieDto[]
+  zasahy: ZasahDto[]
+  children: Array<{ id: string; faza: FazaSarze; nazovNadoby: string; volume: number }>
 }

@@ -13,12 +13,12 @@ Existujúce obrazovky pokrývajú pivnicu, vína, detail vína a šarže, merani
 - `localStorage` session a všetky browserové persistence mechanizmy.
 - Pinia store ako zdroj doménových dát.
 - JSON katalógy stabilných doménových enumov, ich generic CatalogService a historické typy meraní, zásahov a fáz.
-- Historické operácie merge, bottling a samostatný split workflow; rozdelenie bude súčasťou všeobecného transferu do 1..N nádob.
+- Historické operácie merge, bottling a samostatný split workflow; rozdelenie bude súčasťou všeobecného presunu do 1..N nádob.
 - Vite/PWA/Dexie/Pinia závislosti, staré testy viazané na IndexedDB a nepoužívané seed/config súbory.
 
 ## 3. Časti na zachovanie
 
-- Vizuálny jazyk, dark/earthy paleta, rozloženie hlavného dashboardu a vessel assets.
+- Vizuálny jazyk, dark/earthy paleta, rozloženie hlavného dashboardu a nadoba assets.
 - Malé prezentačné komponenty (ikony, vizuál nádoby, status badge) po prispôsobení novým DTO.
 - Použiteľné formátovacie utility a slovenské popisy.
 - Doménové jadro existujúcich validačných pravidiel: parsovanie desatinných čísel, kontrola kapacity, bilancia objemov a výber posledného merania; pravidlá sa presunú do shared/server vrstvy.
@@ -30,26 +30,26 @@ Nuxt 4 bude hostiť Vue frontend aj Nitro API. Stránky budú volať malé compo
 
 Tok: `page/component -> composable -> Nitro API -> service -> repository -> Drizzle -> SQLite`.
 
-Demo autentifikácia sa zachová bez veľkého auth systému: login vytvorí náhodnú serverovú session uloženú v DB a nastaví HTTP-only cookie. Každý chránený endpoint odvodí používateľa a pivnicu zo session/membership, nie z klientom poslaného `cellarId`.
+Demo autentifikácia sa zachová bez veľkého auth systému: login vytvorí náhodnú serverovú session uloženú v DB a nastaví HTTP-only cookie. Každý chránený endpoint odvodí používateľa a pivnicu zo session/membership, nie z klientom poslaného `pivnicaId`.
 
 ## 5. Cieľový databázový model
 
-- `users`, `cellars`, `cellar_members`, `sessions`
-- `wines` (`cellarId`, stabilný `code`, názov, ročník, farba, poznámka)
-- `wine_source_materials` (odroda, podiel, hmotnosť, objem, cukornatosť)
-- `batches` (generované ID, víno, fáza, snapshot nádoby — názov, typ, kapacita a lokalita — rodič, objem, stav a časové údaje)
-- `measurements` (append-only typ, hodnota, jednotka, čas merania)
-- `interventions` (povolený typ, čas, poznámka)
-- `transfers` (zdrojová šarža, strata, cieľová fáza, čas)
-- `transfer_destinations` (transfer, objem, vzniknutá šarža; cieľová nádoba je snapshot vo vzniknutej šarži)
+- `users`, `pivnice`, `pivnica_members`, `sessions`
+- `vina` (`pivnicaId`, stabilný `code`, názov, ročník, farba, poznámka)
+- `vstupne_suroviny_vina` (odroda, podiel, hmotnosť, objem, cukornatosť)
+- `sarze` (generované ID, víno, fáza, snapshot nádoby — názov, typ, kapacita a lokalita — rodič, objem, stav a časové údaje)
+- `merania` (append-only typ, hodnota, jednotka, čas merania)
+- `zasahy` (povolený typ, čas, poznámka)
+- `presuny` (zdrojová šarža, strata, cieľová fáza, čas)
+- `ciele_presunov` (presun, objem, vzniknutá šarža; cieľová nádoba je snapshot vo vzniknutej šarži)
 
-Nádoba sa neeviduje samostatne. Každá šarža uchováva jej snapshot a rovnaký názov nádoby môže mať iba jedna aktívna šarža v pivnici. Lineage je zachovaný cez `parentBatchId` aj explicitný transfer destination.
+Nádoba sa neeviduje samostatne. Každá šarža uchováva jej snapshot a rovnaký názov nádoby môže mať iba jedna aktívna šarža v pivnici. Lineage je zachovaný cez `rodicovskaSarzaId` aj explicitný presun ciel.
 
 ## 6. Migračné kroky
 
 1. Zaviesť Nuxt konfiguráciu, shared enumy/DTO a validačné utility.
 2. Pridať Drizzle SQLite schému, SQL migráciu, DB klienta, WAL a idempotentný vývojový seed.
-3. Implementovať repositories a služby pre vína, šarže so snapshotom nádoby, merania, zásahy, dashboard a transfer.
+3. Implementovať repositories a služby pre vína, šarže so snapshotom nádoby, merania, zásahy, dashboard a presun.
 4. Pokryť generovanie ID a všetky viac-krokové operácie SQLite transakciami.
 5. Pridať Nitro API a serverovú session/membership kontrolu.
 6. Migrovať obrazovky na Nuxt pages a `$fetch` composables, pričom zachovať mobilný vizuál.
@@ -60,13 +60,13 @@ Nádoba sa neeviduje samostatne. Každá šarža uchováva jej snapshot a rovnak
 
 - **Rozhodnutie – staré browser dáta:** Existujúce dáta sú lokálny demo seed v IndexedDB, nie serverové používateľské dáta. Automatický prenos z browsera by odporoval odstráneniu offline architektúry a neexistuje spoľahlivý serverový identifikátor. Budú nahradené transformovaným serverovým demo seedom. Ak sa v konkrétnom browseri nachádzajú reálne dáta, pred nasadením je potrebný jednorazový export mimo tejto migrácie.
 - **Rozhodnutie – auth:** Pôvodné prihlásenie je iba lokálna simulácia. Implementuje sa malá DB session s HTTP-only cookie a jedným seed používateľom, nie registrácia/obnova hesla/role management.
-- **Rozhodnutie – úplný transfer:** UI a service štandardne vyžadujú, aby `destinations + loss = source volume`; tým nevznikne aktívna šarža s nejasným zvyškom.
+- **Rozhodnutie – úplný presun:** UI a service štandardne vyžadujú, aby `ciele + loss = source volume`; tým nevznikne aktívna šarža s nejasným zvyškom.
 - **Riziko – SQLite driver:** `better-sqlite3` je natívny Node modul; deployment musí používať Node/Nitro server a persistentný filesystem, nie edge runtime.
-- **Riziko – force delete:** Vymazanie bude povolené iba s explicitnou frázou `FORCE DELETE` a iba bez následníkov/transferov; naviazané merania a zásahy sa nebudú potichu kaskádovo mazať.
+- **Riziko – force delete:** Vymazanie bude povolené iba s explicitnou frázou `FORCE DELETE` a iba bez následníkov/presunov; naviazané merania a zásahy sa nebudú potichu kaskádovo mazať.
 
 ## 8. Staré súbory/moduly na odstránenie
 
-- `src/db/database.ts`, `src/repositories/wineryRepository.ts`, `src/stores/*`
+- `src/db/database.ts`, `src/repositories/vinoryRepository.ts`, `src/stores/*`
 - `src/router`, `src/main.ts`, staré `src/views` a formuláre previazané na store
 - `src/data/config/*`, staré browser seed importy a offline testy
 - `vite.config.ts`, `index.html`, `env.d.ts`, staré Vite TypeScript konfigurácie
@@ -80,7 +80,7 @@ Nádoba sa neeviduje samostatne. Každá šarža uchováva jej snapshot a rovnak
 - Povolené enumy sú presne štyri merania, tri zásahy a štyri fázy.
 - Server autoritatívne validuje scope, objemy, kapacity, prechody, percentá a stav šarže.
 - Merania sú append-only a dashboard dostáva latest-per-type zo servera.
-- Batch ID vzniká v transakcii v scope pivnica/rok/víno/fáza.
-- Close, clarification a transfer 1..N sú konzistentné; lineage a strata sú uložené.
+- Sarza ID vzniká v transakcii v scope pivnica/rok/víno/fáza.
+- Close, clarification a presun 1..N sú konzistentné; lineage a strata sú uložené.
 - Force delete je explicitné a chráni graf histórie.
 - Kritické doménové operácie majú testy a migration/typecheck/lint/test/build prejdú.

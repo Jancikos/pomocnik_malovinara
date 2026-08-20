@@ -1,17 +1,17 @@
 <script setup lang="ts">
 const route = useRoute()
 const auth = useAuth()
-const { data: cellarData } = await useCellar()
+const { data: dataPivnice } = await usePivnica()
 
 const navigation = [
-  { to: '/cellar', label: 'Pivnica', subtitle: 'Aktívne šarže', icon: 'home' },
-  { to: '/wines', label: 'Vína', subtitle: 'Portfólio pivnice', icon: 'wine' },
-  { to: '/batches', label: 'Šarže', subtitle: 'Výrobný cyklus', icon: 'batches' },
+  { to: '/pivnica', label: 'Pivnica', subtitle: 'Aktívne šarže', icon: 'home' },
+  { to: '/vina', label: 'Vína', subtitle: 'Portfólio pivnice', icon: 'vino' },
+  { to: '/sarze', label: 'Šarže', subtitle: 'Výrobný cyklus', icon: 'sarze' },
 ]
 
 const pageTitle = computed(() => {
-  if (route.path.startsWith('/wines')) return 'Vína'
-  if (route.path.startsWith('/batches')) return 'Šarže'
+  if (route.path.startsWith('/vina')) return 'Vína'
+  if (route.path.startsWith('/sarze')) return 'Šarže'
   return 'Pivnica'
 })
 
@@ -26,17 +26,17 @@ const initials = computed(() => auth.current.value?.user.name
 <template>
   <div class="app-shell">
     <aside class="sidebar">
-      <NuxtLink to="/cellar" class="brand sidebar-brand">
+      <NuxtLink to="/pivnica" class="brand sidebar-brand">
         <span class="brand-mark">V</span>
         <span><strong>Vinársky</strong><small>Pomocník</small></span>
       </NuxtLink>
 
-      <section class="cellar-switcher">
+      <section class="pivnica-switcher">
         <p class="eyebrow gold">Aktívna pivnica</p>
-        <strong>{{ auth.current.value?.cellar.name || 'Moja pivnica' }}</strong>
+        <strong>{{ auth.current.value?.pivnica.name || 'Moja pivnica' }}</strong>
         <small>
-          {{ cellarData?.summary.activeBatches || 0 }} šarží ·
-          {{ cellarData?.summary.totalVolume.toLocaleString('sk-SK') || 0 }} l
+          {{ dataPivnice?.summary.aktivneSarze || 0 }} šarží ·
+          {{ dataPivnice?.summary.totalVolume.toLocaleString('sk-SK') || 0 }} l
         </small>
       </section>
 

@@ -8,8 +8,8 @@ export interface AuthContext {
   userId: string
   userName: string
   userEmail: string
-  cellarId: string
-  cellarName: string
+  pivnicaId: string
+  nazovPivnice: string
 }
 
 export async function withDatabase<T>(action: (db: Database) => Promise<T> | T): Promise<T> {

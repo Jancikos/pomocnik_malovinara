@@ -19,19 +19,19 @@ defineProps<{ name: string; size?: number }>()
       <path d="m3 11 9-8 9 8" />
       <path d="M5 10v10h14V10M9 20v-6h6v6" />
     </template>
-    <template v-else-if="name === 'wine'">
+    <template v-else-if="name === 'vino'">
       <path d="M7 3h10l-1 7a4 4 0 0 1-8 0L7 3Z" />
       <path d="M12 14v7M8.5 21h7" />
     </template>
-    <template v-else-if="name === 'batches'">
+    <template v-else-if="name === 'sarze'">
       <path d="m12 3 9 5-9 5-9-5 9-5Z" />
       <path d="m3 12 9 5 9-5M3 16l9 5 9-5" />
     </template>
-    <template v-else-if="name === 'flask' || name === 'measurement'">
+    <template v-else-if="name === 'flask' || name === 'meranie'">
       <path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3" />
       <path d="M7.5 16h9" />
     </template>
-    <template v-else-if="name === 'intervention'">
+    <template v-else-if="name === 'zasah'">
       <path d="m12 3 1.8 6.2L20 11l-6.2 1.8L12 19l-1.8-6.2L4 11l6.2-1.8L12 3Z" />
     </template>
     <template v-else-if="name === 'search'">

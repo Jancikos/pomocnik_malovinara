@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'node:crypto'
 import { and, eq, gt } from 'drizzle-orm'
 import type { H3Event } from 'h3'
 import { deleteCookie, getCookie, setCookie } from 'h3'
-import { cellarMembers, cellars, sessions, users } from '../database/schema'
+import { clenoviaPivnice, pivnice, sessions, users } from '../database/schema'
 import type { Database } from '../database/client'
 import { DomainError } from './errors'
 
@@ -16,18 +16,18 @@ function tokenHash(token: string): string {
 export async function requireAuth(event: H3Event, db: Database) {
   const token = getCookie(event, cookieName)
   if (!token) throw new DomainError('Prihláste sa.', 401)
-  const row = db.select({ userId: users.id, userName: users.name, userEmail: users.email, cellarId: cellars.id, cellarName: cellars.name })
+  const row = db.select({ userId: users.id, userName: users.name, userEmail: users.email, pivnicaId: pivnice.id, nazovPivnice: pivnice.name })
     .from(sessions)
     .innerJoin(users, eq(sessions.userId, users.id))
-    .innerJoin(cellarMembers, eq(cellarMembers.userId, users.id))
-    .innerJoin(cellars, eq(cellarMembers.cellarId, cellars.id))
+    .innerJoin(clenoviaPivnice, eq(clenoviaPivnice.userId, users.id))
+    .innerJoin(pivnice, eq(clenoviaPivnice.pivnicaId, pivnice.id))
     .where(and(eq(sessions.tokenHash, tokenHash(token)), gt(sessions.expiresAt, new Date())))
     .get()
   if (!row) {
     deleteCookie(event, cookieName)
     throw new DomainError('Platnosť prihlásenia vypršala.', 401)
   }
-  return { userId: row.userId, userName: row.userName, userEmail: row.userEmail, cellarId: row.cellarId, cellarName: row.cellarName }
+  return { userId: row.userId, userName: row.userName, userEmail: row.userEmail, pivnicaId: row.pivnicaId, nazovPivnice: row.nazovPivnice }
 }
 
 export function createSession(event: H3Event, db: Database, userId: string): void {

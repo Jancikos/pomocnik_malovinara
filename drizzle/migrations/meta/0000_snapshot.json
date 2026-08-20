@@ -4,8 +4,8 @@
   "id": "d0be956b-ea4f-4ae4-bdde-71f0c97845ac",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "batches": {
-      "name": "batches",
+    "sarze": {
+      "name": "sarze",
       "columns": {
         "id": {
           "name": "id",
@@ -14,57 +14,57 @@
           "notNull": true,
           "autoincrement": false
         },
-        "cellar_id": {
-          "name": "cellar_id",
+        "pivnica_id": {
+          "name": "pivnica_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "wine_id": {
-          "name": "wine_id",
+        "vino_id": {
+          "name": "vino_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "phase": {
-          "name": "phase",
+        "faza": {
+          "name": "faza",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "vessel_name": {
-          "name": "vessel_name",
+        "nazov_nadoby": {
+          "name": "nazov_nadoby",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "vessel_type": {
-          "name": "vessel_type",
+        "typ_nadoby": {
+          "name": "typ_nadoby",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "vessel_capacity": {
-          "name": "vessel_capacity",
+        "kapacita_nadoby": {
+          "name": "kapacita_nadoby",
           "type": "real",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "vessel_location": {
-          "name": "vessel_location",
+        "umiestnenie_nadoby": {
+          "name": "umiestnenie_nadoby",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "parent_batch_id": {
-          "name": "parent_batch_id",
+        "rodicovska_sarza_id": {
+          "name": "rodicovska_sarza_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -116,53 +116,53 @@
         }
       },
       "indexes": {
-        "batches_cellar_status_idx": {
-          "name": "batches_cellar_status_idx",
+        "sarze_pivnica_status_idx": {
+          "name": "sarze_pivnica_status_idx",
           "columns": [
-            "cellar_id",
+            "pivnica_id",
             "status"
           ],
           "isUnique": false
         },
-        "batches_wine_idx": {
-          "name": "batches_wine_idx",
+        "sarze_vino_idx": {
+          "name": "sarze_vino_idx",
           "columns": [
-            "wine_id"
+            "vino_id"
           ],
           "isUnique": false
         },
-        "batches_parent_idx": {
-          "name": "batches_parent_idx",
+        "sarze_parent_idx": {
+          "name": "sarze_parent_idx",
           "columns": [
-            "parent_batch_id"
+            "rodicovska_sarza_id"
           ],
           "isUnique": false
         },
-        "batches_vessel_name_idx": {
-          "name": "batches_vessel_name_idx",
+        "sarze_nazov_nadoby_idx": {
+          "name": "sarze_nazov_nadoby_idx",
           "columns": [
-            "cellar_id",
-            "vessel_name"
+            "pivnica_id",
+            "nazov_nadoby"
           ],
           "isUnique": false
         },
-        "batches_one_active_per_vessel_name": {
-          "name": "batches_one_active_per_vessel_name",
+        "sarze_one_active_per_nazov_nadoby": {
+          "name": "sarze_one_active_per_nazov_nadoby",
           "columns": [
-            "cellar_id",
-            "vessel_name"
+            "pivnica_id",
+            "nazov_nadoby"
           ],
           "isUnique": true,
-          "where": "\"batches\".\"status\" = 'ACTIVE'"
+          "where": "\"sarze\".\"status\" = 'AKTIVNA'"
         }
       },
       "foreignKeys": {
-        "batches_cellar_id_cellars_id_fk": {
-          "name": "batches_cellar_id_cellars_id_fk",
-          "tableFrom": "batches",
-          "tableTo": "cellars",
+        "sarze_pivnica_id_pivnice_id_fk": {
+          "name": "sarze_pivnica_id_pivnice_id_fk",
+          "tableFrom": "sarze",
+          "tableTo": "pivnice",
           "columnsFrom": [
-            "cellar_id"
+            "pivnica_id"
           ],
           "columnsTo": [
             "id"
@@ -170,12 +170,12 @@
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
-        "batches_wine_id_wines_id_fk": {
-          "name": "batches_wine_id_wines_id_fk",
-          "tableFrom": "batches",
-          "tableTo": "wines",
+        "sarze_vino_id_vina_id_fk": {
+          "name": "sarze_vino_id_vina_id_fk",
+          "tableFrom": "sarze",
+          "tableTo": "vina",
           "columnsFrom": [
-            "wine_id"
+            "vino_id"
           ],
           "columnsTo": [
             "id"
@@ -183,12 +183,12 @@
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
-        "batches_parent_batch_id_batches_id_fk": {
-          "name": "batches_parent_batch_id_batches_id_fk",
-          "tableFrom": "batches",
-          "tableTo": "batches",
+        "sarze_rodicovska_sarza_id_sarze_id_fk": {
+          "name": "sarze_rodicovska_sarza_id_sarze_id_fk",
+          "tableFrom": "sarze",
+          "tableTo": "sarze",
           "columnsFrom": [
-            "parent_batch_id"
+            "rodicovska_sarza_id"
           ],
           "columnsTo": [
             "id"
@@ -201,11 +201,11 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "cellar_members": {
-      "name": "cellar_members",
+    "pivnica_members": {
+      "name": "pivnica_members",
       "columns": {
-        "cellar_id": {
-          "name": "cellar_id",
+        "pivnica_id": {
+          "name": "pivnica_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -237,12 +237,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "cellar_members_cellar_id_cellars_id_fk": {
-          "name": "cellar_members_cellar_id_cellars_id_fk",
-          "tableFrom": "cellar_members",
-          "tableTo": "cellars",
+        "pivnica_members_pivnica_id_pivnice_id_fk": {
+          "name": "pivnica_members_pivnica_id_pivnice_id_fk",
+          "tableFrom": "pivnica_members",
+          "tableTo": "pivnice",
           "columnsFrom": [
-            "cellar_id"
+            "pivnica_id"
           ],
           "columnsTo": [
             "id"
@@ -250,9 +250,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "cellar_members_user_id_users_id_fk": {
-          "name": "cellar_members_user_id_users_id_fk",
-          "tableFrom": "cellar_members",
+        "pivnica_members_user_id_users_id_fk": {
+          "name": "pivnica_members_user_id_users_id_fk",
+          "tableFrom": "pivnica_members",
           "tableTo": "users",
           "columnsFrom": [
             "user_id"
@@ -265,19 +265,19 @@
         }
       },
       "compositePrimaryKeys": {
-        "cellar_members_cellar_id_user_id_pk": {
+        "pivnica_members_pivnica_id_user_id_pk": {
           "columns": [
-            "cellar_id",
+            "pivnica_id",
             "user_id"
           ],
-          "name": "cellar_members_cellar_id_user_id_pk"
+          "name": "pivnica_members_pivnica_id_user_id_pk"
         }
       },
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "cellars": {
-      "name": "cellars",
+    "pivnice": {
+      "name": "pivnice",
       "columns": {
         "id": {
           "name": "id",
@@ -316,8 +316,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "interventions": {
-      "name": "interventions",
+    "zasahy": {
+      "name": "zasahy",
       "columns": {
         "id": {
           "name": "id",
@@ -326,8 +326,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "batch_id": {
-          "name": "batch_id",
+        "sarza_id": {
+          "name": "sarza_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -340,8 +340,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "performed_at": {
-          "name": "performed_at",
+        "vykonane_at": {
+          "name": "vykonane_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -364,22 +364,22 @@
         }
       },
       "indexes": {
-        "interventions_batch_date_idx": {
-          "name": "interventions_batch_date_idx",
+        "zasahy_sarza_date_idx": {
+          "name": "zasahy_sarza_date_idx",
           "columns": [
-            "batch_id",
-            "performed_at"
+            "sarza_id",
+            "vykonane_at"
           ],
           "isUnique": false
         }
       },
       "foreignKeys": {
-        "interventions_batch_id_batches_id_fk": {
-          "name": "interventions_batch_id_batches_id_fk",
-          "tableFrom": "interventions",
-          "tableTo": "batches",
+        "zasahy_sarza_id_sarze_id_fk": {
+          "name": "zasahy_sarza_id_sarze_id_fk",
+          "tableFrom": "zasahy",
+          "tableTo": "sarze",
           "columnsFrom": [
-            "batch_id"
+            "sarza_id"
           ],
           "columnsTo": [
             "id"
@@ -392,8 +392,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "measurements": {
-      "name": "measurements",
+    "merania": {
+      "name": "merania",
       "columns": {
         "id": {
           "name": "id",
@@ -402,8 +402,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "batch_id": {
-          "name": "batch_id",
+        "sarza_id": {
+          "name": "sarza_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -430,8 +430,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "measured_at": {
-          "name": "measured_at",
+        "zmerane_at": {
+          "name": "zmerane_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -447,23 +447,23 @@
         }
       },
       "indexes": {
-        "measurements_batch_type_date_idx": {
-          "name": "measurements_batch_type_date_idx",
+        "merania_sarza_type_date_idx": {
+          "name": "merania_sarza_type_date_idx",
           "columns": [
-            "batch_id",
+            "sarza_id",
             "type",
-            "measured_at"
+            "zmerane_at"
           ],
           "isUnique": false
         }
       },
       "foreignKeys": {
-        "measurements_batch_id_batches_id_fk": {
-          "name": "measurements_batch_id_batches_id_fk",
-          "tableFrom": "measurements",
-          "tableTo": "batches",
+        "merania_sarza_id_sarze_id_fk": {
+          "name": "merania_sarza_id_sarze_id_fk",
+          "tableFrom": "merania",
+          "tableTo": "sarze",
           "columnsFrom": [
-            "batch_id"
+            "sarza_id"
           ],
           "columnsTo": [
             "id"
@@ -537,8 +537,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "transfer_destinations": {
-      "name": "transfer_destinations",
+    "ciele_presunov": {
+      "name": "ciele_presunov",
       "columns": {
         "id": {
           "name": "id",
@@ -547,8 +547,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "transfer_id": {
-          "name": "transfer_id",
+        "presun_id": {
+          "name": "presun_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -561,8 +561,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "created_batch_id": {
-          "name": "created_batch_id",
+        "vytvorena_sarza_id": {
+          "name": "vytvorena_sarza_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -578,21 +578,21 @@
         }
       },
       "indexes": {
-        "transfer_destinations_batch_unique": {
-          "name": "transfer_destinations_batch_unique",
+        "ciele_presunov_sarza_unique": {
+          "name": "ciele_presunov_sarza_unique",
           "columns": [
-            "created_batch_id"
+            "vytvorena_sarza_id"
           ],
           "isUnique": true
         }
       },
       "foreignKeys": {
-        "transfer_destinations_transfer_id_transfers_id_fk": {
-          "name": "transfer_destinations_transfer_id_transfers_id_fk",
-          "tableFrom": "transfer_destinations",
-          "tableTo": "transfers",
+        "ciele_presunov_presun_id_presuny_id_fk": {
+          "name": "ciele_presunov_presun_id_presuny_id_fk",
+          "tableFrom": "ciele_presunov",
+          "tableTo": "presuny",
           "columnsFrom": [
-            "transfer_id"
+            "presun_id"
           ],
           "columnsTo": [
             "id"
@@ -600,12 +600,12 @@
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
-        "transfer_destinations_created_batch_id_batches_id_fk": {
-          "name": "transfer_destinations_created_batch_id_batches_id_fk",
-          "tableFrom": "transfer_destinations",
-          "tableTo": "batches",
+        "ciele_presunov_vytvorena_sarza_id_sarze_id_fk": {
+          "name": "ciele_presunov_vytvorena_sarza_id_sarze_id_fk",
+          "tableFrom": "ciele_presunov",
+          "tableTo": "sarze",
           "columnsFrom": [
-            "created_batch_id"
+            "vytvorena_sarza_id"
           ],
           "columnsTo": [
             "id"
@@ -618,8 +618,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "transfers": {
-      "name": "transfers",
+    "presuny": {
+      "name": "presuny",
       "columns": {
         "id": {
           "name": "id",
@@ -628,15 +628,15 @@
           "notNull": true,
           "autoincrement": false
         },
-        "cellar_id": {
-          "name": "cellar_id",
+        "pivnica_id": {
+          "name": "pivnica_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "source_batch_id": {
-          "name": "source_batch_id",
+        "zdrojova_sarza_id": {
+          "name": "zdrojova_sarza_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -649,15 +649,15 @@
           "notNull": true,
           "autoincrement": false
         },
-        "target_phase": {
-          "name": "target_phase",
+        "cielova_faza": {
+          "name": "cielova_faza",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "performed_at": {
-          "name": "performed_at",
+        "vykonane_at": {
+          "name": "vykonane_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -687,21 +687,21 @@
         }
       },
       "indexes": {
-        "transfers_source_unique": {
-          "name": "transfers_source_unique",
+        "presuny_source_unique": {
+          "name": "presuny_source_unique",
           "columns": [
-            "source_batch_id"
+            "zdrojova_sarza_id"
           ],
           "isUnique": true
         }
       },
       "foreignKeys": {
-        "transfers_cellar_id_cellars_id_fk": {
-          "name": "transfers_cellar_id_cellars_id_fk",
-          "tableFrom": "transfers",
-          "tableTo": "cellars",
+        "presuny_pivnica_id_pivnice_id_fk": {
+          "name": "presuny_pivnica_id_pivnice_id_fk",
+          "tableFrom": "presuny",
+          "tableTo": "pivnice",
           "columnsFrom": [
-            "cellar_id"
+            "pivnica_id"
           ],
           "columnsTo": [
             "id"
@@ -709,12 +709,12 @@
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
-        "transfers_source_batch_id_batches_id_fk": {
-          "name": "transfers_source_batch_id_batches_id_fk",
-          "tableFrom": "transfers",
-          "tableTo": "batches",
+        "presuny_zdrojova_sarza_id_sarze_id_fk": {
+          "name": "presuny_zdrojova_sarza_id_sarze_id_fk",
+          "tableFrom": "presuny",
+          "tableTo": "sarze",
           "columnsFrom": [
-            "source_batch_id"
+            "zdrojova_sarza_id"
           ],
           "columnsTo": [
             "id"
@@ -722,9 +722,9 @@
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
-        "transfers_created_by_users_id_fk": {
-          "name": "transfers_created_by_users_id_fk",
-          "tableFrom": "transfers",
+        "presuny_created_by_users_id_fk": {
+          "name": "presuny_created_by_users_id_fk",
+          "tableFrom": "presuny",
           "tableTo": "users",
           "columnsFrom": [
             "created_by"
@@ -802,8 +802,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "wine_source_materials": {
-      "name": "wine_source_materials",
+    "vstupne_suroviny_vina": {
+      "name": "vstupne_suroviny_vina",
       "columns": {
         "id": {
           "name": "id",
@@ -812,15 +812,15 @@
           "notNull": true,
           "autoincrement": false
         },
-        "wine_id": {
-          "name": "wine_id",
+        "vino_id": {
+          "name": "vino_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "grape_variety": {
-          "name": "grape_variety",
+        "odroda_hrozna": {
+          "name": "odroda_hrozna",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -847,8 +847,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "harvest_sugar": {
-          "name": "harvest_sugar",
+        "cukornatost_pri_zbere": {
+          "name": "cukornatost_pri_zbere",
           "type": "real",
           "primaryKey": false,
           "notNull": false,
@@ -864,21 +864,21 @@
         }
       },
       "indexes": {
-        "source_materials_wine_idx": {
-          "name": "source_materials_wine_idx",
+        "vstupne_suroviny_vino_idx": {
+          "name": "vstupne_suroviny_vino_idx",
           "columns": [
-            "wine_id"
+            "vino_id"
           ],
           "isUnique": false
         }
       },
       "foreignKeys": {
-        "wine_source_materials_wine_id_wines_id_fk": {
-          "name": "wine_source_materials_wine_id_wines_id_fk",
-          "tableFrom": "wine_source_materials",
-          "tableTo": "wines",
+        "vstupne_suroviny_vina_vino_id_vina_id_fk": {
+          "name": "vstupne_suroviny_vina_vino_id_vina_id_fk",
+          "tableFrom": "vstupne_suroviny_vina",
+          "tableTo": "vina",
           "columnsFrom": [
-            "wine_id"
+            "vino_id"
           ],
           "columnsTo": [
             "id"
@@ -891,8 +891,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "wines": {
-      "name": "wines",
+    "vina": {
+      "name": "vina",
       "columns": {
         "id": {
           "name": "id",
@@ -901,8 +901,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "cellar_id": {
-          "name": "cellar_id",
+        "pivnica_id": {
+          "name": "pivnica_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -922,8 +922,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "vintage_year": {
-          "name": "vintage_year",
+        "rocnik": {
+          "name": "rocnik",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -961,31 +961,31 @@
         }
       },
       "indexes": {
-        "wines_cellar_code_unique": {
-          "name": "wines_cellar_code_unique",
+        "vina_pivnica_code_unique": {
+          "name": "vina_pivnica_code_unique",
           "columns": [
-            "cellar_id",
+            "pivnica_id",
             "code"
           ],
           "isUnique": true
         },
-        "wines_cellar_name_year_unique": {
-          "name": "wines_cellar_name_year_unique",
+        "vina_pivnica_name_year_unique": {
+          "name": "vina_pivnica_name_year_unique",
           "columns": [
-            "cellar_id",
+            "pivnica_id",
             "name",
-            "vintage_year"
+            "rocnik"
           ],
           "isUnique": true
         }
       },
       "foreignKeys": {
-        "wines_cellar_id_cellars_id_fk": {
-          "name": "wines_cellar_id_cellars_id_fk",
-          "tableFrom": "wines",
-          "tableTo": "cellars",
+        "vina_pivnica_id_pivnice_id_fk": {
+          "name": "vina_pivnica_id_pivnice_id_fk",
+          "tableFrom": "vina",
+          "tableTo": "pivnice",
           "columnsFrom": [
-            "cellar_id"
+            "pivnica_id"
           ],
           "columnsTo": [
             "id"

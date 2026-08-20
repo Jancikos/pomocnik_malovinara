@@ -1,7 +1,0 @@
-<script setup lang="ts">
-const route = useRoute()
-const { data: wine, error } = await useWine(() => String(route.params.id))
-const { data: batches } = await useBatches()
-const wineBatches = computed(() => batches.value?.filter((batch) => batch.wineId === wine.value?.id) ?? [])
-</script>
-<template><section><NuxtLink class="back-link" to="/wines">← Späť na vína</NuxtLink><p v-if="error" class="form-error">Víno sa nenašlo.</p><template v-else-if="wine"><PageHeading :eyebrow="`${wine.code} · ${wine.vintageYear}`" :title="wine.name" :description="wine.notes || ''"><NuxtLink class="primary-button" :to="`/batches/new?wine=${wine.id}`">+ Prvá šarža</NuxtLink></PageHeading><div class="detail-columns"><section class="panel"><h2>Zdrojový materiál</h2><div v-for="material in wine.sourceMaterials" :key="material.id" class="data-row"><div><strong>{{ material.grapeVariety }}</strong><small>{{ material.weightKg ?? '—' }} kg · {{ material.volumeLiters ?? '—' }} l · {{ material.harvestSugar ?? '—' }} °NM</small></div><b>{{ material.percentage }} %</b></div></section><section class="panel"><h2>Šarže a lineage</h2><NuxtLink v-for="batch in wineBatches" :key="batch.id" class="data-row" :to="`/batches/${batch.id}`"><div><strong>{{ batch.id }}</strong><small>{{ batch.vessel.name }} · {{ batch.volume }} l</small></div><span>→</span></NuxtLink></section></div></template></section></template>

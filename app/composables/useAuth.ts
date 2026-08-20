@@ -1,6 +1,6 @@
 interface AuthState {
   user: { id: string; name: string; email: string }
-  cellar: { id: string; name: string }
+  pivnica: { id: string; name: string }
 }
 
 export function useAuth() {

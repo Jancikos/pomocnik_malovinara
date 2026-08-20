@@ -8,7 +8,7 @@ const saving = ref(false)
 async function submit() {
   errorMessage.value = ''
   saving.value = true
-  try { await auth.login(email.value, password.value); await navigateTo('/cellar') }
+  try { await auth.login(email.value, password.value); await navigateTo('/pivnica') }
   catch (error) { errorMessage.value = apiErrorMessage(error, 'Prihlásenie sa nepodarilo.') }
   finally { saving.value = false }
 }

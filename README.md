@@ -141,20 +141,20 @@ Dôležité pravidlá:
 - API vie vrátiť poslednú hodnotu každého typu merania.
 - Uzavretie šarže a presuny rešpektujú objem, kapacitu a históriu.
 - Presuny obsahu medzi nádobami prebiehajú transakčne.
-- `DELETE /api/batches/:id` vyžaduje potvrdenie `FORCE DELETE` a odmietne vymazanie šarže s históriou alebo následníkmi.
+- `DELETE /api/sarze/:id` vyžaduje potvrdenie `FORCE DELETE` a odmietne vymazanie šarže s históriou alebo následníkmi.
 
-Testy pokrývajú generovanie ID, snapshot nádoby v šarži, ochranu aktívneho názvu nádoby, append-only merania, latest-per-type, uzavretie, odkalenie, single aj multi-destination stáčanie, objemovú bilanciu, kapacitu, lineage a ochranu force delete.
+Testy pokrývajú generovanie ID, snapshot nádoby v šarži, ochranu aktívneho názvu nádoby, append-only merania, latest-per-type, uzavretie, odkalenie, single aj multi-ciel stáčanie, objemovú bilanciu, kapacitu, lineage a ochranu force delete.
 
 ## Hlavné API
 
 - `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
-- `GET /api/cellar/dashboard`
-- `GET|POST /api/wines`, `GET /api/wines/:id`
-- `GET|POST /api/batches`, `GET|DELETE /api/batches/:id`
-- `POST /api/batches/:id/close`
-- `GET|POST /api/batches/:id/measurements`
-- `POST /api/batches/:id/interventions`
-- `POST /api/transfers`
+- `GET /api/pivnica/prehlad`
+- `GET|POST /api/vina`, `GET /api/vina/:id`
+- `GET|POST /api/sarze`, `GET|DELETE /api/sarze/:id`
+- `POST /api/sarze/:id/uzavriet`
+- `GET|POST /api/sarze/:id/merania`
+- `POST /api/sarze/:id/zasahy`
+- `POST /api/presuny`
 
 ## Produkčný build a nasadenie
 

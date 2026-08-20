@@ -1,0 +1,7 @@
+<script setup lang="ts">
+const route = useRoute()
+const { data: vino, error } = await useVino(() => String(route.params.id))
+const { data: sarze } = await useSarze()
+const vinoSarze = computed(() => sarze.value?.filter((sarza) => sarza.vinoId === vino.value?.id) ?? [])
+</script>
+<template><section><NuxtLink class="back-link" to="/vina">← Späť na vína</NuxtLink><p v-if="error" class="form-error">Víno sa nenašlo.</p><template v-else-if="vino"><PageHeading :eyebrow="`${vino.code} · ${vino.rocnik}`" :title="vino.name" :description="vino.notes || ''"><NuxtLink class="primary-button" :to="`/sarze/new?vino=${vino.id}`">+ Prvá šarža</NuxtLink></PageHeading><div class="detail-columns"><section class="panel"><h2>Zdrojový materiál</h2><div v-for="material in vino.vstupneSuroviny" :key="material.id" class="data-row"><div><strong>{{ material.odrodaHrozna }}</strong><small>{{ material.weightKg ?? '—' }} kg · {{ material.volumeLiters ?? '—' }} l · {{ material.cukornatostPriZbere ?? '—' }} °NM</small></div><b>{{ material.percentage }} %</b></div></section><section class="panel"><h2>Šarže a lineage</h2><NuxtLink v-for="sarza in vinoSarze" :key="sarza.id" class="data-row" :to="`/sarze/${sarza.id}`"><div><strong>{{ sarza.id }}</strong><small>{{ sarza.nadoba.name }} · {{ sarza.volume }} l</small></div><span>→</span></NuxtLink></section></div></template></section></template>

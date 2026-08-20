@@ -4,11 +4,12 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { FazaSarze, StavSarze, TypZasahu, TypMerania, TypNadoby, FarbaVina } from '../../../shared/domain'
 import { createDatabase, type DatabaseContext } from '../../database/client'
-import { sarze, clenoviaPivnice, pivnice, merania, cielePresunu, presuny, users, vina } from '../../database/schema'
+import { sarze, clenoviaPivnice, pivnice, merania, cielePresunu, presuny, users, vina, vstupneSurovinyVina } from '../../database/schema'
 import { uzavriSarzu, vytvorSarzu, vynutVymazanieSarze, nacitajSarzu } from '../sarza.service'
 import { vytvorZasah } from '../zasah.service'
 import { vytvorMeranie } from '../meranie.service'
 import { presunSarzu } from '../presun.service'
+import { vytvorVino, upravVino } from '../vino.service'
 
 let context: DatabaseContext
 
@@ -50,6 +51,73 @@ function vlozSarzu(
 }
 
 const kontextPresunu = { pivnicaId: 'pivnica-1', userId: 'user-1' }
+
+describe('vino services', () => {
+  it('kontroluje jedinečnosť kódu až v kombinácii s ročníkom', async () => {
+    await expect(vytvorVino(context.db, 'pivnica-1', {
+      name: 'Irsai Oliver 2025',
+      code: 'IO',
+      rocnik: 2025,
+      color: FarbaVina.BIELE,
+      vstupneSuroviny: [],
+    })).resolves.toMatchObject({ code: 'IO', rocnik: 2025 })
+
+    expect(() => vytvorVino(context.db, 'pivnica-1', {
+      name: 'Iný Irsai',
+      code: 'IO',
+      rocnik: 2026,
+      color: FarbaVina.BIELE,
+      vstupneSuroviny: [],
+    })).toThrow('kódom a ročníkom')
+  })
+
+  it('upraví existujúce víno a nahradí jeho zdrojové materiály', async () => {
+    context.db.insert(vstupneSurovinyVina).values({
+      id: 'material-old',
+      vinoId: 'vino-1',
+      odrodaHrozna: 'Pôvodná odroda',
+      percentage: 100,
+    }).run()
+
+    const updated = await upravVino(context.db, 'pivnica-1', 'vino-1', {
+      name: 'Irsai Oliver SS',
+      code: 'IOS',
+      rocnik: 1995,
+      color: FarbaVina.BIELE,
+      notes: 'Upravené víno.',
+      vstupneSuroviny: [{
+        odrodaHrozna: 'Irsai Oliver SS',
+        percentage: 100,
+        weightKg: 340,
+        volumeLiters: 220,
+        cukornatostPriZbere: 19.5,
+      }],
+    })
+
+    expect(updated).toMatchObject({ id: 'vino-1', name: 'Irsai Oliver SS', code: 'IOS', rocnik: 1995, notes: 'Upravené víno.' })
+    expect(updated.vstupneSuroviny).toHaveLength(1)
+    expect(updated.vstupneSuroviny[0]).toMatchObject({ odrodaHrozna: 'Irsai Oliver SS', percentage: 100, weightKg: 340, volumeLiters: 220, cukornatostPriZbere: 19.5 })
+    expect(context.db.select().from(vstupneSurovinyVina).where(eq(vstupneSurovinyVina.id, 'material-old')).get()).toBeUndefined()
+  })
+
+  it('pri úprave odmietne kolíziu kódu a ročníka s iným vínom', async () => {
+    await vytvorVino(context.db, 'pivnica-1', {
+      name: 'Irsai Oliver 2025',
+      code: 'IO',
+      rocnik: 2025,
+      color: FarbaVina.BIELE,
+      vstupneSuroviny: [],
+    })
+
+    expect(() => upravVino(context.db, 'pivnica-1', 'vino-1', {
+      name: 'Irsai Oliver',
+      code: 'IO',
+      rocnik: 2025,
+      color: FarbaVina.BIELE,
+      vstupneSuroviny: [],
+    })).toThrow('kódom a ročníkom')
+  })
+})
 
 describe('sarza lifecycle services', () => {
   it('generuje deterministické ID a uloží snapshot nádoby priamo do šarže', async () => {

@@ -41,6 +41,10 @@ defineProps<{ name: string; size?: number }>()
     <template v-else-if="name === 'plus'">
       <path d="M12 5v14M5 12h14" />
     </template>
+    <template v-else-if="name === 'edit'">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </template>
     <template v-else-if="name === 'logout'">
       <path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10" />
     </template>

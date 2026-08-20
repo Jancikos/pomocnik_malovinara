@@ -45,7 +45,7 @@ export const vina = sqliteTable('vina', {
   notes: text('notes'),
   ...timestamps,
 }, (table) => [
-  uniqueIndex('vina_pivnica_code_unique').on(table.pivnicaId, table.code),
+  uniqueIndex('vina_pivnica_code_year_unique').on(table.pivnicaId, table.code, table.rocnik),
   uniqueIndex('vina_pivnica_name_year_unique').on(table.pivnicaId, table.name, table.rocnik),
 ])
 

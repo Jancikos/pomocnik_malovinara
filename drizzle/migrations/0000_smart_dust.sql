@@ -136,5 +136,5 @@ CREATE TABLE `vina` (
 	FOREIGN KEY (`pivnica_id`) REFERENCES `pivnice`(`id`) ON UPDATE no action ON DELETE restrict
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `vina_pivnica_code_unique` ON `vina` (`pivnica_id`,`code`);--> statement-breakpoint
+CREATE UNIQUE INDEX `vina_pivnica_code_year_unique` ON `vina` (`pivnica_id`,`code`,`rocnik`);--> statement-breakpoint
 CREATE UNIQUE INDEX `vina_pivnica_name_year_unique` ON `vina` (`pivnica_id`,`name`,`rocnik`);

@@ -961,11 +961,12 @@
         }
       },
       "indexes": {
-        "vina_pivnica_code_unique": {
-          "name": "vina_pivnica_code_unique",
+        "vina_pivnica_code_year_unique": {
+          "name": "vina_pivnica_code_year_unique",
           "columns": [
             "pivnica_id",
-            "code"
+            "code",
+            "rocnik"
           ],
           "isUnique": true
         },

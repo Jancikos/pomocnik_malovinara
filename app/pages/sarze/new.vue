@@ -58,7 +58,6 @@ async function save() {
       </label>
 
       <h2 class="span-2 form-section-title">Nádoba šarže</h2>
-      <label class="span-2">Názov nádoby<input v-model="form.nadoba.name" required placeholder="Tank T1"></label>
       <label>
         Typ nádoby
         <select v-model="form.nadoba.type" required>
@@ -66,6 +65,7 @@ async function save() {
         </select>
       </label>
       <label>Kapacita (l)<input v-model.number="form.nadoba.capacity" type="number" min="0.1" step="0.1" inputmode="decimal" required></label>
+      <label class="span-2">Názov nádoby<input v-model="form.nadoba.name" required placeholder="Tank T1"></label>
       <label class="span-2">Umiestnenie (voliteľné)<input v-model="form.nadoba.location" placeholder="Hlavná miestnosť"></label>
 
       <h2 class="span-2 form-section-title">Obsah šarže</h2>

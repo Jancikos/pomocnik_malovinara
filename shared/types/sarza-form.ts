@@ -1,8 +1,6 @@
 import type { FazaSarze, TypNadoby } from '../domain'
 
-export interface SarzaFormBody {
-  vinoId: string
-  faza: FazaSarze
+export interface DetailSarzeFormBody {
   nadoba: {
     name: string
     type: TypNadoby
@@ -10,5 +8,10 @@ export interface SarzaFormBody {
     location: string
   }
   volume: number
+}
+
+export interface SarzaFormBody extends DetailSarzeFormBody {
+  vinoId: string
+  faza: FazaSarze
   openedAt: string
 }

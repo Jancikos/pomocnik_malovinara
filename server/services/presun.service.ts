@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { and, eq } from 'drizzle-orm'
-import { povolenaCielovaFaza, StavSarze, TypZasahu, type FazaSarze, overBilanciuObjemu } from '../../shared/domain'
+import { FazaSarze, StavSarze, TypZasahu, overBilanciuObjemu } from '../../shared/domain'
 import { parseDecimal } from '../../shared/utils/number'
 import type { Database } from '../database/client'
 import { sarze, zasahy, cielePresunu, presuny, vina } from '../database/schema'
@@ -27,6 +27,10 @@ export function presunSarzu(
   const lossVolume = parseDecimal(body.lossVolume ?? 0, 'Strata')
   const vykonaneAt = body.vykonaneAt ? new Date(String(body.vykonaneAt)) : new Date()
   if (Number.isNaN(vykonaneAt.getTime())) throw new DomainError('Dátum presunu nie je platný.')
+  const typZasahu = Object.values(TypZasahu).includes(body.type as TypZasahu)
+    ? body.type as TypZasahu
+    : cielovaFaza === FazaSarze.ODKALENIE ? TypZasahu.ODKALENIE : TypZasahu.STACANIE
+  if (typZasahu === TypZasahu.SIRENIE) throw new DomainError('Sírenie nevytvára nové šarže.')
 
   const cielNames = ciele.map((item) => item.nazovNadoby.toLocaleLowerCase('sk'))
   if (new Set(cielNames).size !== cielNames.length) {
@@ -43,8 +47,9 @@ export function presunSarzu(
       throw new DomainError('Cieľová nádoba musí byť odlišná od zdrojovej.')
     }
 
-    const ocakavanaFaza = povolenaCielovaFaza(source.faza, cielovaFaza === 'ODKALENIE' ? TypZasahu.ODKALENIE : TypZasahu.STACANIE)
-    if (!ocakavanaFaza || ocakavanaFaza !== cielovaFaza) throw new DomainError('Tento fázový prechod nie je povolený.')
+    if (source.faza === cielovaFaza) throw new DomainError('Cieľová fáza musí byť odlišná od aktuálnej fázy šarže.')
+    if (typZasahu === TypZasahu.ODKALENIE && cielovaFaza !== FazaSarze.ODKALENIE) throw new DomainError('Odkalenie vytvára šarže vo fáze odkalenia.')
+    if (typZasahu === TypZasahu.KVASENIE && cielovaFaza !== FazaSarze.KVASENIE) throw new DomainError('Kvasenie vytvára šarže vo fáze kvasenia.')
     overBilanciuObjemu(source.volume, ciele, lossVolume)
 
     const vino = tx.select().from(vina).where(and(eq(vina.id, source.vinoId), eq(vina.pivnicaId, context.pivnicaId))).get()
@@ -77,7 +82,7 @@ export function presunSarzu(
     tx.insert(zasahy).values({
       id: randomUUID(),
       sarzaId: source.id,
-      type: cielovaFaza === 'ODKALENIE' ? TypZasahu.ODKALENIE : TypZasahu.STACANIE,
+      type: typZasahu,
       vykonaneAt,
       notes: typeof body.notes === 'string' && body.notes.trim() ? body.notes.trim() : null,
     }).run()

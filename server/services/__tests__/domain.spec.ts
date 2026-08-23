@@ -4,7 +4,7 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { FazaSarze, StavSarze, TypZasahu, TypMerania, TypNadoby, FarbaVina } from '../../../shared/domain'
 import { createDatabase, type DatabaseContext } from '../../database/client'
-import { sarze, clenoviaPivnice, pivnice, merania, cielePresunu, presuny, users, vina, vstupneSurovinyVina } from '../../database/schema'
+import { sarze, clenoviaPivnice, pivnice, merania, cielePresunu, presuny, zasahy, users, vina, vstupneSurovinyVina } from '../../database/schema'
 import { uzavriSarzu, vytvorSarzu, vynutVymazanieSarze, nacitajSarzu, upravZakladSarze } from '../sarza.service'
 import { vytvorZasah } from '../zasah.service'
 import { vytvorMeranie } from '../meranie.service'
@@ -203,6 +203,34 @@ describe('sarza lifecycle services', () => {
       notes: 'Kontrolný zásah počas zrenia.',
     })
     expect(created?.type).toBe(TypZasahu.ODKALENIE)
+  })
+  it('sírenie iba zaeviduje hodnotu a nechá šaržu aktívnu', async () => {
+    const id = vlozSarzu(FazaSarze.KVASENIE)
+    const created = await vytvorZasah(context.db, 'pivnica-1', id, {
+      type: TypZasahu.SIRENIE,
+      sulfurMg: 25,
+      vykonaneAt: '2026-08-03T08:00:00Z',
+    })
+
+    expect(created?.type).toBe(TypZasahu.SIRENIE)
+    expect(created?.notes).toContain('25 mg')
+    expect(context.db.select().from(sarze).where(eq(sarze.id, id)).get()?.status).toBe(StavSarze.AKTIVNA)
+    expect(context.db.select().from(presuny).all()).toHaveLength(0)
+  })
+
+  it('zásah kvasenie uzavrie zdroj a vytvorí novú šaržu vo fáze kvasenia', () => {
+    const sourceId = vlozSarzu(FazaSarze.ODKALENIE)
+    const result = presunSarzu(context.db, kontextPresunu, {
+      type: TypZasahu.KVASENIE,
+      zdrojovaSarzaId: sourceId,
+      cielovaFaza: FazaSarze.KVASENIE,
+      ciele: [{ nadoba: nadoba('Kvasná nádoba', 100), volume: 98 }],
+      lossVolume: 2,
+    })
+
+    expect(context.db.select().from(sarze).where(eq(sarze.id, sourceId)).get()?.status).toBe(StavSarze.UZAVRETA)
+    expect(context.db.select().from(sarze).where(eq(sarze.id, result.vytvoreneSarzeIds[0]!)).get()?.faza).toBe(FazaSarze.KVASENIE)
+    expect(context.db.select().from(zasahy).where(eq(zasahy.sarzaId, sourceId)).get()?.type).toBe(TypZasahu.KVASENIE)
   })
   it('umožní manuálne uzavretie a zablokuje ďalšie meranie', async () => {
     const id = vlozSarzu(FazaSarze.MUST)

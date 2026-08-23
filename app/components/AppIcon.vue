@@ -64,6 +64,10 @@ defineProps<{ name: string; size?: number }>()
       <path d="M12 12c-4.5-.5-6-3-6-7 4 .5 6 3 6 7Z" />
       <path d="M12 14c4.5-.5 6-3 6-7-4 .5-6 3-6 7Z" />
     </template>
+    <template v-else-if="name === 'shield-plus'">
+      <path d="M12 3 19 6v5c0 4.5-2.8 8-7 10-4.2-2-7-5.5-7-10V6l7-3Z" />
+      <path d="M12 8v6M9 11h6" />
+    </template>
     <template v-else-if="name === 'search'">
       <circle cx="11" cy="11" r="7" />
       <path d="m20 20-4-4" />

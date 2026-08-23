@@ -445,6 +445,23 @@ input:focus, select:focus, textarea:focus { border-color: rgba(224,185,95,.62); 
 .choice-card strong { font-size: 16px; }
 .choice-card small { color: var(--muted); }
 
+.action-form-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.action-form-heading h2 { margin: 0; }
+.locked-field {
+  display: grid;
+  gap: 7px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #171411;
+}
+.locked-field span { color: #c7bbb0; font-size: 12px; font-weight: 750; }
+.locked-field strong { color: var(--text); }
+.target-fields { margin-top: 4px; }
 .login-page {
   min-height: 100vh;
   display: grid;

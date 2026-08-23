@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import {
-  FazaSarze,
   StavSarze,
   TypZasahu,
   TypMerania,
-  TypNadoby,
   nazvyFazSarze,
   nazvyZasahov,
   moznostiZasahov,
@@ -19,19 +17,12 @@ const actionError = ref('')
 const saving = ref(false)
 const showMeasure = ref(false)
 const showZasah = ref(false)
-const showPresun = ref(false)
 const showDanger = ref(false)
 
 const formularMerania = reactive({
   type: TypMerania.TEPLOTA,
   value: undefined as number | undefined,
   zmeraneAt: new Date().toISOString().slice(0, 16),
-})
-
-const formularZasahu = reactive({
-  type: TypZasahu.KVASENIE,
-  vykonaneAt: new Date().toISOString().slice(0, 16),
-  notes: '',
 })
 
 const ikonyMerani: Record<TypMerania, string> = {
@@ -45,37 +36,10 @@ const ikonyZasahov: Record<TypZasahu, string> = {
   [TypZasahu.KVASENIE]: 'sprout',
   [TypZasahu.ODKALENIE]: 'filter',
   [TypZasahu.STACANIE]: 'transfer',
+  [TypZasahu.SIRENIE]: 'shield-plus',
 }
 
-function emptyCiel() {
-  return {
-    nadoba: {
-      name: '',
-      type: TypNadoby.NEREZOVY_TANK,
-      capacity: 100,
-      location: '',
-    },
-    volume: 0,
-  }
-}
-
-const formularPresunu = reactive({
-  lossVolume: 0,
-  vykonaneAt: new Date().toISOString().slice(0, 16),
-  notes: '',
-  ciele: [emptyCiel()],
-})
 const forceConfirmation = ref('')
-
-const cielovaFaza = computed(() => {
-  if (sarza.value?.faza === FazaSarze.MUST) return FazaSarze.ODKALENIE
-  if (sarza.value?.faza === FazaSarze.ODKALENIE) return FazaSarze.KVASENIE
-  if (sarza.value?.faza === FazaSarze.KVASENIE) return FazaSarze.ZRENIE
-  return null
-})
-const typPresunu = computed(() => sarza.value?.faza === FazaSarze.MUST ? TypZasahu.ODKALENIE : TypZasahu.STACANIE)
-const moved = computed(() => formularPresunu.ciele.reduce((sum, item) => sum + Number(item.volume || 0), 0))
-const remaining = computed(() => (sarza.value?.volume ?? 0) - moved.value - Number(formularPresunu.lossVolume || 0))
 
 function openMeranie() {
   showMeasure.value = true
@@ -85,17 +49,14 @@ function openZasah() {
   showZasah.value = true
 }
 
+function openZasahForm(type: TypZasahu) {
+  showZasah.value = false
+  return navigateTo('/sarze/' + id.value + '/zasahy/' + type.toLowerCase() + '/new')
+}
+
 function formatHodnotaMerania(value: number | null | undefined) {
   if (value === null || value === undefined) return '—'
   return Number(value).toLocaleString('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
-
-function addCiel() {
-  formularPresunu.ciele.push(emptyCiel())
-}
-
-function removeCiel(index: number) {
-  if (formularPresunu.ciele.length > 1) formularPresunu.ciele.splice(index, 1)
 }
 
 async function saveMeranie() {
@@ -109,42 +70,6 @@ async function saveMeranie() {
   }
   catch (e) {
     actionError.value = apiErrorMessage(e, 'Meranie sa nepodarilo uložiť.')
-  }
-  finally {
-    saving.value = false
-  }
-}
-
-async function saveZasah() {
-  saving.value = true
-  actionError.value = ''
-  try {
-    await $fetch(`/api/sarze/${id.value}/zasahy`, { method: 'POST', body: formularZasahu })
-    await refresh()
-    showZasah.value = false
-    formularZasahu.notes = ''
-  }
-  catch (e) {
-    actionError.value = apiErrorMessage(e, 'Zásah sa nepodarilo uložiť.')
-  }
-  finally {
-    saving.value = false
-  }
-}
-
-async function savePresun() {
-  if (!cielovaFaza.value) return
-  saving.value = true
-  actionError.value = ''
-  try {
-    const result = await $fetch<{ vytvoreneSarzeIds: string[] }>('/api/presuny', {
-      method: 'POST',
-      body: { zdrojovaSarzaId: id.value, cielovaFaza: cielovaFaza.value, ...formularPresunu },
-    })
-    await navigateTo(`/sarze/${result.vytvoreneSarzeIds[0]}`)
-  }
-  catch (e) {
-    actionError.value = apiErrorMessage(e, 'Presun sa nepodarilo dokončiť.')
   }
   finally {
     saving.value = false
@@ -215,9 +140,7 @@ async function forceDelete() {
       <div class="action-bar">
         <button v-if="sarza.status === StavSarze.AKTIVNA" class="primary-button" @click="openMeranie"><AppIcon name="plus" /> Meranie</button>
         <button v-if="sarza.status === StavSarze.AKTIVNA" class="secondary-button" @click="openZasah"><AppIcon name="plus" /> Zásah</button>
-        <button v-if="sarza.status === StavSarze.AKTIVNA && cielovaFaza" class="secondary-button" @click="showPresun = true">
-          <AppIcon name="sarze" /> {{ nazvyZasahov[typPresunu] }} a presun
-        </button>
+
         <button v-if="sarza.status === StavSarze.AKTIVNA" class="ghost-button" @click="uzavriSarzu">Uzavrieť šaržu</button>
       </div>
       <p v-if="actionError" class="form-error">{{ actionError }}</p>
@@ -286,7 +209,6 @@ async function forceDelete() {
       </section>
     </template>
 
-
     <div v-if="showMeasure" class="modal-backdrop" @click.self="showMeasure = false">
       <form class="sheet" @submit.prevent="saveMeranie">
         <div class="sheet-handle" />
@@ -316,69 +238,25 @@ async function forceDelete() {
     </div>
 
     <div v-if="showZasah" class="modal-backdrop" @click.self="showZasah = false">
-      <form class="sheet" @submit.prevent="saveZasah">
+      <section class="sheet action-sheet">
         <div class="sheet-handle" />
         <div class="sheet-heading">
           <div><p class="eyebrow gold">{{ sarza?.nadoba.name }} · {{ sarza?.nazovVina }}</p><h2>Pridať zásah</h2></div>
           <button type="button" class="icon-button subtle" aria-label="Zavrieť" @click="showZasah = false"><AppIcon name="close" /></button>
         </div>
-        <div class="form-grid">
-          <div class="span-2 choice-grid" aria-label="Typ zásahu">
-            <button
-              v-for="option in moznostiZasahov"
-              :key="option.value"
-              type="button"
-              class="choice-card"
-              :class="{ active: formularZasahu.type === option.value }"
-              @click="formularZasahu.type = option.value"
-            >
-              <span class="choice-card-icon"><AppIcon :name="ikonyZasahov[option.value]" :size="27" /></span>
-              <span><strong>{{ option.label }}</strong></span>
-            </button>
-          </div>
-          <label class="span-2">Čas<input v-model="formularZasahu.vykonaneAt" type="datetime-local" required></label>
-          <label class="span-2">Poznámka<textarea v-model="formularZasahu.notes" rows="3" placeholder="Čo bolo vykonané?"></textarea></label>
-          <p class="form-hint span-2">Zásah sa uloží ako záznam bez automatickej zmeny fázy alebo objemu.</p>
-          <button class="primary-button span-2" :disabled="saving">{{ saving ? 'Ukladám…' : 'Uložiť zásah' }}</button>
+        <div class="choice-grid" aria-label="Typ zásahu">
+          <button
+            v-for="option in moznostiZasahov"
+            :key="option.value"
+            type="button"
+            class="choice-card"
+            @click="openZasahForm(option.value)"
+          >
+            <span class="choice-card-icon"><AppIcon :name="ikonyZasahov[option.value]" :size="27" /></span>
+            <span><strong>{{ option.label }}</strong></span>
+          </button>
         </div>
-      </form>
-    </div>
-
-    <div v-if="showPresun && cielovaFaza" class="modal-backdrop" @click.self="showPresun = false">
-      <form class="sheet presun-sheet" @submit.prevent="savePresun">
-        <div class="sheet-handle" />
-        <div class="sheet-heading">
-          <div><p class="eyebrow gold">{{ nazvyZasahov[typPresunu] }}</p><h2>Presun do {{ nazvyFazSarze[cielovaFaza] }}</h2></div>
-          <button type="button" class="icon-button subtle" aria-label="Zavrieť" @click="showPresun = false"><AppIcon name="close" /></button>
-        </div>
-
-        <fieldset v-for="(ciel, index) in formularPresunu.ciele" :key="index" class="ciel-card">
-          <div class="ciel-heading">
-            <strong>Cieľová nádoba {{ index + 1 }}</strong>
-            <button v-if="formularPresunu.ciele.length > 1" type="button" class="text-button danger-text" @click="removeCiel(index)">Odstrániť</button>
-          </div>
-          <div class="ciel-fields">
-            <label class="span-2">Názov<input v-model="ciel.nadoba.name" required placeholder="Tank T2"></label>
-            <label>Typ<select v-model="ciel.nadoba.type" required><option v-for="type in TypNadoby" :key="type" :value="type">{{ nazvyTypovNadob[type] }}</option></select></label>
-            <label>Kapacita (l)<input v-model.number="ciel.nadoba.capacity" type="number" min="0.1" step="0.1" inputmode="decimal" required></label>
-            <label>Objem šarže (l)<input v-model.number="ciel.volume" type="number" min="0.1" step="0.1" inputmode="decimal" required></label>
-            <label>Umiestnenie<input v-model="ciel.nadoba.location"></label>
-          </div>
-        </fieldset>
-
-        <button type="button" class="secondary-button" @click="addCiel">+ Ďalšia cieľová nádoba</button>
-        <div class="form-grid presun-meta">
-          <label>Strata (l)<input v-model.number="formularPresunu.lossVolume" type="number" min="0" step="0.1" inputmode="decimal" required></label>
-          <label>Čas<input v-model="formularPresunu.vykonaneAt" type="datetime-local" required></label>
-          <label class="span-2">Poznámka<textarea v-model="formularPresunu.notes" rows="2" /></label>
-        </div>
-        <div class="presun-summary">
-          <span>Presúvané <b>{{ moved }} l</b></span>
-          <span>Strata <b>{{ formularPresunu.lossVolume }} l</b></span>
-          <span :class="{ invalid: Math.abs(remaining) > 0.001 }">Zostáva <b>{{ remaining.toFixed(1) }} l</b></span>
-        </div>
-        <button class="primary-button full" :disabled="saving || Math.abs(remaining) > 0.001">{{ saving ? 'Presúvam…' : 'Dokončiť atomický presun' }}</button>
-      </form>
+      </section>
     </div>
   </section>
 </template>

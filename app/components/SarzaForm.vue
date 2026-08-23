@@ -17,6 +17,7 @@ const emit = defineEmits<{
   save: [body: SarzaFormBody]
 }>()
 
+const auth = useAuth()
 function toDateTimeLocal(value: string) {
   return new Date(value).toISOString().slice(0, 16)
 }
@@ -36,7 +37,7 @@ const detail = reactive<DetailSarzeFormBody>({
     name: props.initialValue?.nadoba.name ?? initialAutoName,
     type: initialType,
     capacity: initialCapacity,
-    location: props.initialValue?.nadoba.location ?? '',
+    location: props.initialValue?.nadoba.location ?? auth.current.value?.preferences.defaultContainerLocation ?? '',
   },
   volume: props.initialValue?.volume ?? 100,
 })

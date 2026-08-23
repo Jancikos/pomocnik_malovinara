@@ -16,7 +16,7 @@ let context: DatabaseContext
 beforeEach(() => {
   context = createDatabase(':memory:')
   migrate(context.db, { migrationsFolder: resolve(process.cwd(), 'drizzle/migrations') })
-  context.db.insert(users).values({ id: 'user-1', email: 'test@example.sk', passwordHash: 'x', name: 'Test' }).run()
+  context.db.insert(users).values({ id: 'user-1', email: 'test@example.sk', passwordHash: 'x', name: 'Test', emailVerifiedAt: new Date() }).run()
   context.db.insert(pivnice).values({ id: 'pivnica-1', name: 'Testovacia pivnica' }).run()
   context.db.insert(clenoviaPivnice).values({ pivnicaId: 'pivnica-1', userId: 'user-1', role: 'OWNER' }).run()
   context.db.insert(vina).values({ id: 'vino-1', pivnicaId: 'pivnica-1', name: 'Irsai Oliver', code: 'IO', rocnik: 2026, color: FarbaVina.BIELE }).run()

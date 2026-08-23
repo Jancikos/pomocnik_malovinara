@@ -19,6 +19,7 @@
   "dependencies": {
     "better-sqlite3": "^12.2.0",
     "drizzle-orm": "^0.45.2",
+    "nodemailer": "^9.0.5",
     "nuxt": "^4.5.2",
     "vue": "^3.5.18",
     "vue-router": "^5.2.0"
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.3.0",
+    "@types/nodemailer": "^8.0.1",
     "@typescript-eslint/parser": "^8.41.0",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.34.0",

@@ -7,15 +7,17 @@ const navigation = [
   { to: '/pivnica', label: 'Pivnica', subtitle: 'Aktívne šarže', icon: 'home' },
   { to: '/vina', label: 'Vína', subtitle: 'Portfólio pivnice', icon: 'vino' },
   { to: '/sarze', label: 'Šarže', subtitle: 'Výrobný cyklus', icon: 'sarze' },
+  { to: '/ucet', label: 'Účet', subtitle: 'Osobné nastavenia', icon: 'user' },
 ]
 
 const pageTitle = computed(() => {
   if (route.path.startsWith('/vina')) return 'Vína'
   if (route.path.startsWith('/sarze')) return 'Šarže'
+  if (route.path.startsWith('/ucet')) return 'Účet'
   return 'Pivnica'
 })
 
-const initials = computed(() => auth.current.value?.user.name
+const initials = computed(() => auth.current.value?.user.nickname
   .split(' ')
   .map((part) => part[0])
   .join('')
@@ -59,11 +61,13 @@ const initials = computed(() => auth.current.value?.user.name
           <span><strong>Pripojené</strong><small>Serverová databáza</small></span>
         </div>
         <div class="user-card">
-          <span class="user-avatar">{{ initials }}</span>
-          <span>
-            <strong>{{ auth.current.value?.user.name }}</strong>
-            <small>{{ auth.current.value?.user.email }}</small>
-          </span>
+          <NuxtLink to="/ucet" class="user-profile-link">
+            <span class="user-avatar">{{ initials }}</span>
+            <span>
+              <strong>{{ auth.current.value?.user.nickname }}</strong>
+              <small>{{ auth.current.value?.user.email }}</small>
+            </span>
+          </NuxtLink>
           <button class="icon-button subtle" aria-label="Odhlásiť" title="Odhlásiť" @click="auth.logout">
             <AppIcon name="logout" />
           </button>

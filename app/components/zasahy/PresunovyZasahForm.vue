@@ -10,6 +10,7 @@ const props = defineProps<{
   icon: string
 }>()
 
+const auth = useAuth()
 const saving = ref(false)
 const errorMessage = ref('')
 
@@ -45,7 +46,7 @@ function novyCiel(volume = props.sarza.volume, type: TypNadoby = props.sarza.nad
       name: navrhniNazovNadoby(type, capacity),
       type,
       capacity,
-      location: props.sarza.nadoba.location ?? '',
+      location: auth.current.value?.preferences.defaultContainerLocation || props.sarza.nadoba.location || '',
     },
     volume,
   }

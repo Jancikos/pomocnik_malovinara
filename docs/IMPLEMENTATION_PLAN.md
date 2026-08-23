@@ -59,7 +59,7 @@ Nádoba sa neeviduje samostatne. Každá šarža uchováva jej snapshot a rovnak
 ## 7. Riziká a rozhodnutia
 
 - **Rozhodnutie – staré browser dáta:** Existujúce dáta sú lokálny demo seed v IndexedDB, nie serverové používateľské dáta. Automatický prenos z browsera by odporoval odstráneniu offline architektúry a neexistuje spoľahlivý serverový identifikátor. Budú nahradené transformovaným serverovým demo seedom. Ak sa v konkrétnom browseri nachádzajú reálne dáta, pred nasadením je potrebný jednorazový export mimo tejto migrácie.
-- **Rozhodnutie – auth:** Pôvodné prihlásenie je iba lokálna simulácia. Implementuje sa malá DB session s HTTP-only cookie a jedným seed používateľom, nie registrácia/obnova hesla/role management.
+- **Rozhodnutie – auth:** Prihlásenie používa e-mail a heslo, DB session s HTTP-only cookie a povinné potvrdenie novej registrácie e-mailom. Admin a role management sa zatiaľ neimplementujú.
 - **Rozhodnutie – úplný presun:** UI a service štandardne vyžadujú, aby `ciele + loss = source volume`; tým nevznikne aktívna šarža s nejasným zvyškom.
 - **Riziko – SQLite driver:** `better-sqlite3` je natívny Node modul; deployment musí používať Node/Nitro server a persistentný filesystem, nie edge runtime.
 - **Riziko – force delete:** Vymazanie bude povolené iba s explicitnou frázou `FORCE DELETE` a iba bez následníkov/presunov; naviazané merania a zásahy sa nebudú potichu kaskádovo mazať.

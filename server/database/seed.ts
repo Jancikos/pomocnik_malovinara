@@ -10,7 +10,14 @@ export async function seedDevelopmentData(db: Database): Promise<void> {
 
   const now = new Date('2026-08-17T08:00:00Z')
   db.transaction((tx) => {
-    tx.insert(users).values({ id: 'user-oskar', email: 'oskar@example.sk', passwordHash: hashPassword('vino2026'), name: 'Oskar' }).run()
+    tx.insert(users).values({
+      id: 'user-oskar',
+      email: 'oskar@example.sk',
+      passwordHash: hashPassword('vino2026'),
+      name: 'Oskar',
+      emailVerifiedAt: now,
+      defaultContainerLocation: 'Hlavná miestnosť',
+    }).run()
     tx.insert(pivnice).values({ id: 'pivnica-oskar', name: 'Oskarova pivnica' }).run()
     tx.insert(clenoviaPivnice).values({ pivnicaId: 'pivnica-oskar', userId: 'user-oskar', role: 'OWNER' }).run()
     tx.insert(vina).values([

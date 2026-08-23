@@ -8,6 +8,20 @@
       "when": 1787169427580,
       "tag": "0000_smart_dust",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1787515460833,
+      "tag": "0001_hot_whiplash",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1787517210519,
+      "tag": "0002_simple_garia",
+      "breakpoints": true
     }
   ]
 }

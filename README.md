@@ -12,7 +12,7 @@ Typický tok požiadavky:
 Nuxt stránka → composable → Nitro API → service → repository → Drizzle → SQLite
 ```
 
-Serverová SQLite databáza je jediný zdroj dát. Prihlásenie používa serverovú session uloženú v HTTP-only cookie. Dáta každej požiadavky sú na serveri obmedzené podľa členstva používateľa v pivnici.
+Serverová SQLite databáza je jediný zdroj dát. Prihlásenie e-mailom a heslom používa serverovú session uloženú v HTTP-only cookie. Nové registrácie sa aktivujú jednorazovým odkazom zaslaným e-mailom. Dáta každej požiadavky sú na serveri obmedzené podľa členstva používateľa v pivnici.
 
 ## Štruktúra projektu
 
@@ -86,12 +86,19 @@ Ak už `.env` existuje alebo databáza obsahuje dáta, konfiguráciu a seed netr
 
 ## Konfigurácia a databáza
 
-Lokálne nastavenia sú v súbore `.env`; vzor poskytuje `.env.example`. Premenná `DATABASE_URL` určuje umiestnenie SQLite databázy.
+Lokálne nastavenia sú v súbore `.env`; vzor poskytuje `.env.example`. Premenná `DATABASE_URL` určuje umiestnenie SQLite databázy. SMTP premenné zabezpečujú odosielanie registračných e-mailov. Ak SMTP vo vývoji nie je nastavené, overovací odkaz sa vypíše do terminálu a zobrazí priamo po registrácii; v produkcii je SMTP povinné.
 
 Vývojová hodnota:
 
 ```dotenv
 DATABASE_URL=./data/dev.sqlite
+APP_URL=http://localhost:3000
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=uzivatel
+SMTP_PASSWORD=heslo
+EMAIL_FROM="Vinársky Pomocník <noreply@example.com>"
 ```
 
 Súbor `.env` ani SQLite databázové súbory necommituj. SQLite používa foreign keys, busy timeout a WAL režim.
@@ -173,6 +180,8 @@ Na serveri nastav minimálne:
 
 - `NODE_ENV=production`
 - `DATABASE_URL` na absolútnu cestu k SQLite súboru na trvalom disku
+- `APP_URL` na verejnú HTTPS adresu aplikácie
+- `SMTP_HOST`, `SMTP_PORT`, prípadne `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURE` a `EMAIL_FROM` na odosielanie potvrdení registrácie
 - `HOST` a `PORT` podľa hostingu
 
 Príklad:

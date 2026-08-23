@@ -12,8 +12,17 @@ export const users = sqliteTable('users', {
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   name: text('name').notNull(),
+  emailVerifiedAt: integer('email_verified_at', { mode: 'timestamp_ms' }),
+  defaultContainerLocation: text('default_container_location').notNull().default(''),
   ...timestamps,
 })
+
+export const emailVerificationTokens = sqliteTable('email_verification_tokens', {
+  tokenHash: text('token_hash').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
+}, (table) => [index('email_verification_tokens_user_idx').on(table.userId)])
 
 export const pivnice = sqliteTable('pivnice', {
   id: text('id').primaryKey(),

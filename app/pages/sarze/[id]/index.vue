@@ -34,6 +34,19 @@ const formularZasahu = reactive({
   notes: '',
 })
 
+const ikonyMerani: Record<TypMerania, string> = {
+  [TypMerania.CUKORNATOST]: 'sweetness',
+  [TypMerania.PH]: 'ph',
+  [TypMerania.HUSTOTA]: 'density',
+  [TypMerania.TEPLOTA]: 'thermometer',
+}
+
+const ikonyZasahov: Record<TypZasahu, string> = {
+  [TypZasahu.KVASENIE]: 'sprout',
+  [TypZasahu.ODKALENIE]: 'filter',
+  [TypZasahu.STACANIE]: 'transfer',
+}
+
 function emptyCiel() {
   return {
     nadoba: {
@@ -70,6 +83,11 @@ function openMeranie() {
 
 function openZasah() {
   showZasah.value = true
+}
+
+function formatHodnotaMerania(value: number | null | undefined) {
+  if (value === null || value === undefined) return '—'
+  return Number(value).toLocaleString('sk-SK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 function addCiel() {
@@ -215,7 +233,7 @@ async function forceDelete() {
               <strong>{{ option.label }}</strong>
               <small>{{ sarza.posledneMerania[option.value]?.zmeraneAt ? new Date(sarza.posledneMerania[option.value]!.zmeraneAt).toLocaleString('sk-SK') : 'Zatiaľ bez merania' }}</small>
             </div>
-            <b>{{ sarza.posledneMerania[option.value]?.value ?? '—' }} <small>{{ sarza.posledneMerania[option.value]?.unit || option.unit }}</small></b>
+            <b>{{ formatHodnotaMerania(sarza.posledneMerania[option.value]?.value) }} <small>{{ sarza.posledneMerania[option.value]?.unit || option.unit }}</small></b>
           </div>
         </section>
 
@@ -230,7 +248,7 @@ async function forceDelete() {
               <small>{{ new Date(item.vykonaneAt).toLocaleString('sk-SK') }}</small>
               <small v-if="item.notes">{{ item.notes }}</small>
             </div>
-            <AppIcon name="zasah" :size="18" />
+            <AppIcon :name="ikonyZasahov[item.type]" :size="18" />
           </div>
           <p v-if="sarza.zasahy.length === 0" class="muted">Zatiaľ bez zásahov.</p>
         </section>
@@ -256,7 +274,7 @@ async function forceDelete() {
       <section class="danger-zone">
         <div class="admin-actions">
           <NuxtLink class="ghost-button" :to="`/sarze/${sarza.id}/edit`"><AppIcon name="edit" /> Upraviť základ</NuxtLink>
-          <button class="danger-button" @click="showDanger = !showDanger">Administratívne FORCE delete</button>
+          <button class="danger-button" @click="showDanger = !showDanger">Nezvratné vymazanie</button>
         </div>
         <div v-if="showDanger" class="panel">
           <p>Vymazanie je možné iba bez meraní, zásahov, presunov a následníkov. Zadajte <b>FORCE DELETE</b>.</p>
@@ -286,7 +304,7 @@ async function forceDelete() {
               :class="{ active: formularMerania.type === option.value }"
               @click="formularMerania.type = option.value"
             >
-              <span class="choice-card-icon meranie"><AppIcon name="meranie" :size="25" /></span>
+              <span class="choice-card-icon"><AppIcon :name="ikonyMerani[option.value]" :size="27" /></span>
               <span><strong>{{ option.label }}</strong><small>{{ option.unit }}</small></span>
             </button>
           </div>
@@ -314,7 +332,7 @@ async function forceDelete() {
               :class="{ active: formularZasahu.type === option.value }"
               @click="formularZasahu.type = option.value"
             >
-              <span class="choice-card-icon zasah"><AppIcon name="zasah" :size="25" /></span>
+              <span class="choice-card-icon"><AppIcon :name="ikonyZasahov[option.value]" :size="27" /></span>
               <span><strong>{{ option.label }}</strong></span>
             </button>
           </div>

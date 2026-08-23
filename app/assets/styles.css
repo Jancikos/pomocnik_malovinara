@@ -408,6 +408,44 @@ input:focus, select:focus, textarea:focus { border-color: rgba(224,185,95,.62); 
 .action-choice-icon.vino { background: rgba(156,64,93,.18); color: #df9ab0; }
 .action-choice-icon.sarza { background: rgba(224,185,95,.12); color: var(--gold); }
 
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.choice-card {
+  min-height: 96px;
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #171411;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.choice-card:hover,
+.choice-card.active {
+  border-color: rgba(224,185,95,.55);
+  background: #211b17;
+}
+.choice-card-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: rgba(224,185,95,.12);
+  color: var(--gold);
+}
+.choice-card-icon.zasah { background: rgba(156,64,93,.18); color: #df7e9c; }
+.choice-card > span:last-child { display: grid; gap: 4px; }
+.choice-card strong { font-size: 16px; }
+.choice-card small { color: var(--muted); }
+
 .login-page {
   min-height: 100vh;
   display: grid;
@@ -539,6 +577,7 @@ input:focus, select:focus, textarea:focus { border-color: rgba(224,185,95,.62); 
   .action-choice { min-height: 92px; grid-template-columns: 54px 1fr auto; padding: 14px; }
   .action-choice-icon { width: 54px; height: 54px; }
   .action-choice strong { font-size: 21px; }
+  .choice-grid { grid-template-columns: 1fr; }
   .ciel-fields { grid-template-columns: 1fr; }
   .ciel-fields .span-2 { grid-column: auto; }
   .presun-summary { grid-template-columns: 1fr; }

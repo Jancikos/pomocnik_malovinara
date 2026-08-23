@@ -17,7 +17,6 @@ const id = computed(() => String(route.params.id))
 const { data: sarza, error, refresh } = await useSarza(id)
 const actionError = ref('')
 const saving = ref(false)
-const showActionMenu = ref(false)
 const showMeasure = ref(false)
 const showZasah = ref(false)
 const showPresun = ref(false)
@@ -66,12 +65,10 @@ const moved = computed(() => formularPresunu.ciele.reduce((sum, item) => sum + N
 const remaining = computed(() => (sarza.value?.volume ?? 0) - moved.value - Number(formularPresunu.lossVolume || 0))
 
 function openMeranie() {
-  showActionMenu.value = false
   showMeasure.value = true
 }
 
 function openZasah() {
-  showActionMenu.value = false
   showZasah.value = true
 }
 
@@ -198,7 +195,8 @@ async function forceDelete() {
       </div>
 
       <div class="action-bar">
-        <button v-if="sarza.status === StavSarze.AKTIVNA" class="primary-button" @click="showActionMenu = true"><AppIcon name="plus" /> Zaznamenať</button>
+        <button v-if="sarza.status === StavSarze.AKTIVNA" class="primary-button" @click="openMeranie"><AppIcon name="plus" /> Meranie</button>
+        <button v-if="sarza.status === StavSarze.AKTIVNA" class="secondary-button" @click="openZasah"><AppIcon name="plus" /> Zásah</button>
         <button v-if="sarza.status === StavSarze.AKTIVNA && cielovaFaza" class="secondary-button" @click="showPresun = true">
           <AppIcon name="sarze" /> {{ nazvyZasahov[typPresunu] }} a presun
         </button>
@@ -270,38 +268,28 @@ async function forceDelete() {
       </section>
     </template>
 
-    <div v-if="showActionMenu" class="modal-backdrop action-backdrop" @click.self="showActionMenu = false">
-      <section class="sheet action-sheet">
-        <div class="sheet-handle" />
-        <div class="sheet-heading">
-          <div>
-            <p class="eyebrow gold">{{ sarza?.nadoba.name }} · {{ sarza?.nazovVina }}</p>
-            <h2>Čo chcete zaznamenať?</h2>
-          </div>
-          <button class="icon-button subtle" aria-label="Zavrieť" @click="showActionMenu = false"><AppIcon name="close" /></button>
-        </div>
-        <button class="action-choice" @click="openMeranie">
-          <span class="action-choice-icon meranie"><AppIcon name="meranie" :size="27" /></span>
-          <span><strong>Meranie</strong><small>Hodnota bez zásahu do vína</small></span>
-          <AppIcon name="arrow" :size="25" />
-        </button>
-        <button class="action-choice" @click="openZasah">
-          <span class="action-choice-icon zasah"><AppIcon name="zasah" :size="27" /></span>
-          <span><strong>Zásah</strong><small>Ľubovoľný úkon v aktuálnej fáze šarže</small></span>
-          <AppIcon name="arrow" :size="25" />
-        </button>
-      </section>
-    </div>
 
     <div v-if="showMeasure" class="modal-backdrop" @click.self="showMeasure = false">
       <form class="sheet" @submit.prevent="saveMeranie">
         <div class="sheet-handle" />
         <div class="sheet-heading">
-          <div><p class="eyebrow gold">Nový záznam</p><h2>Meranie</h2></div>
+          <div><p class="eyebrow gold">{{ sarza?.nadoba.name }} · {{ sarza?.nazovVina }}</p><h2>Pridať meranie</h2></div>
           <button type="button" class="icon-button subtle" aria-label="Zavrieť" @click="showMeasure = false"><AppIcon name="close" /></button>
         </div>
         <div class="form-grid">
-          <label class="span-2">Typ merania<select v-model="formularMerania.type"><option v-for="option in moznostiMerani" :key="option.value" :value="option.value">{{ option.label }} · {{ option.unit }}</option></select></label>
+          <div class="span-2 choice-grid" aria-label="Typ merania">
+            <button
+              v-for="option in moznostiMerani"
+              :key="option.value"
+              type="button"
+              class="choice-card"
+              :class="{ active: formularMerania.type === option.value }"
+              @click="formularMerania.type = option.value"
+            >
+              <span class="choice-card-icon meranie"><AppIcon name="meranie" :size="25" /></span>
+              <span><strong>{{ option.label }}</strong><small>{{ option.unit }}</small></span>
+            </button>
+          </div>
           <label>Hodnota<input v-model.number="formularMerania.value" type="number" step="any" inputmode="decimal" required></label>
           <label>Čas<input v-model="formularMerania.zmeraneAt" type="datetime-local" required></label>
           <button class="primary-button span-2" :disabled="saving">{{ saving ? 'Ukladám…' : 'Uložiť meranie' }}</button>
@@ -313,11 +301,23 @@ async function forceDelete() {
       <form class="sheet" @submit.prevent="saveZasah">
         <div class="sheet-handle" />
         <div class="sheet-heading">
-          <div><p class="eyebrow gold">Nový záznam</p><h2>Zásah</h2></div>
+          <div><p class="eyebrow gold">{{ sarza?.nadoba.name }} · {{ sarza?.nazovVina }}</p><h2>Pridať zásah</h2></div>
           <button type="button" class="icon-button subtle" aria-label="Zavrieť" @click="showZasah = false"><AppIcon name="close" /></button>
         </div>
         <div class="form-grid">
-          <label class="span-2">Typ zásahu<select v-model="formularZasahu.type"><option v-for="option in moznostiZasahov" :key="option.value" :value="option.value">{{ option.label }}</option></select></label>
+          <div class="span-2 choice-grid" aria-label="Typ zásahu">
+            <button
+              v-for="option in moznostiZasahov"
+              :key="option.value"
+              type="button"
+              class="choice-card"
+              :class="{ active: formularZasahu.type === option.value }"
+              @click="formularZasahu.type = option.value"
+            >
+              <span class="choice-card-icon zasah"><AppIcon name="zasah" :size="25" /></span>
+              <span><strong>{{ option.label }}</strong></span>
+            </button>
+          </div>
           <label class="span-2">Čas<input v-model="formularZasahu.vykonaneAt" type="datetime-local" required></label>
           <label class="span-2">Poznámka<textarea v-model="formularZasahu.notes" rows="3" placeholder="Čo bolo vykonané?"></textarea></label>
           <p class="form-hint span-2">Zásah sa uloží ako záznam bez automatickej zmeny fázy alebo objemu.</p>

@@ -82,7 +82,7 @@ function submit() {
 
     <h2 class="span-2 form-section-title">Obsah šarže</h2>
     <label>Objem (l)<input v-model.number="form.volume" type="number" min="0.1" step="0.1" inputmode="decimal" required></label>
-    <label>Otvorená<input v-model="form.openedAt" type="datetime-local" required></label>
+    <label>Založená<input v-model="form.openedAt" type="datetime-local" required></label>
     <p v-if="errorMessage" class="form-error span-2">{{ errorMessage }}</p>
     <button class="primary-button span-2" :disabled="saving"><AppIcon name="check" /> {{ saving ? 'Ukladám…' : submitLabel }}</button>
   </form>

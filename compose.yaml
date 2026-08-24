@@ -1,0 +1,47 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vinarsky-pomocnik:local
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3000"
+      DATABASE_URL: /app/data/database.sqlite
+      APP_URL: "${APP_URL:?Set APP_URL in .env}"
+      SMTP_HOST: "${SMTP_HOST:?Set SMTP_HOST in .env}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_SECURE: "${SMTP_SECURE:-false}"
+      SMTP_USER: "${SMTP_USER:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      EMAIL_FROM: "${EMAIL_FROM:?Set EMAIL_FROM in .env}"
+    ports:
+      - "${APP_BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-3000}:3000"
+    volumes:
+      - app-data:/app/data
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/').then(response => { if (!response.ok) process.exitCode = 1 }).catch(() => { process.exitCode = 1 })"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  app-data:

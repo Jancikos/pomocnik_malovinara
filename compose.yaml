@@ -12,13 +12,13 @@ services:
       HOST: 0.0.0.0
       PORT: "3000"
       DATABASE_URL: /app/data/database.sqlite
-      APP_URL: "${APP_URL:?Set APP_URL in .env}"
-      SMTP_HOST: "${SMTP_HOST:?Set SMTP_HOST in .env}"
-      SMTP_PORT: "${SMTP_PORT:-587}"
-      SMTP_SECURE: "${SMTP_SECURE:-false}"
-      SMTP_USER: "${SMTP_USER:-}"
-      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
-      EMAIL_FROM: "${EMAIL_FROM:?Set EMAIL_FROM in .env}"
+      NUXT_APP_URL: "${APP_URL:?Set APP_URL in .env.docker}"
+      NUXT_SMTP_HOST: "${SMTP_HOST:?Set SMTP_HOST in .env.docker}"
+      NUXT_SMTP_PORT: "${SMTP_PORT:-587}"
+      NUXT_SMTP_SECURE: "${SMTP_SECURE:-false}"
+      NUXT_SMTP_USER: "${SMTP_USER:-}"
+      NUXT_SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      NUXT_EMAIL_FROM: "${EMAIL_FROM:?Set EMAIL_FROM in .env.docker}"
     ports:
       - "${APP_BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-3000}:3000"
     volumes:

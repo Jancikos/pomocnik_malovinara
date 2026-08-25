@@ -22,7 +22,7 @@ services:
     ports:
       - "${APP_BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-3000}:3000"
     volumes:
-      - app-data:/app/data
+      - ./data:/app/data
     healthcheck:
       test:
         - CMD
@@ -42,6 +42,3 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-
-volumes:
-  app-data:

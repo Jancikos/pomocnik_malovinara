@@ -68,9 +68,15 @@ const poslednyAutomatickyNazovNadoby = ref(
     : '',
 )
 
-watch(() => [props.modelValue.nadoba.type, props.modelValue.nadoba.capacity] as const, ([type, capacity]) => {
+watch([
+  () => props.modelValue.nadoba.type,
+  () => props.modelValue.nadoba.capacity,
+], ([type, capacity]) => {
   const novyNazov = navrhniNazovNadoby(type, Number(capacity || 0))
-  if (!props.modelValue.nadoba.name || props.modelValue.nadoba.name === poslednyAutomatickyNazovNadoby.value) {
+  if (
+    props.modelValue.nadoba.name !== novyNazov
+    && (!props.modelValue.nadoba.name || props.modelValue.nadoba.name === poslednyAutomatickyNazovNadoby.value)
+  ) {
     updateNadoba({ name: novyNazov })
   }
   poslednyAutomatickyNazovNadoby.value = novyNazov

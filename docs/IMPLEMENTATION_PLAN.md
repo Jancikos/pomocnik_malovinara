@@ -62,7 +62,7 @@ Nádoba sa neeviduje samostatne. Každá šarža uchováva jej snapshot a rovnak
 - **Rozhodnutie – auth:** Prihlásenie používa e-mail a heslo, DB session s HTTP-only cookie a povinné potvrdenie novej registrácie e-mailom. Admin a role management sa zatiaľ neimplementujú.
 - **Rozhodnutie – úplný presun:** UI a service štandardne vyžadujú, aby `ciele + loss = source volume`; tým nevznikne aktívna šarža s nejasným zvyškom.
 - **Riziko – SQLite driver:** `better-sqlite3` je natívny Node modul; deployment musí používať Node/Nitro server a persistentný filesystem, nie edge runtime.
-- **Riziko – force delete:** Vymazanie bude povolené iba s explicitnou frázou `FORCE DELETE` a iba bez následníkov/presunov; naviazané merania a zásahy sa nebudú potichu kaskádovo mazať.
+- **Riziko – force delete:** Vymazanie je povolené iba s explicitnou frázou `FORCE DELETE` a bez následníkov. Rozhranie upozorní na odstránenie meraní, zásahov a väzieb na presuny; všetko sa odstráni v jednej transakcii. Rodokmeň možno postupne mazať od listov ku koreňu bez opätovného otvorenia rodiča.
 
 ## 8. Staré súbory/moduly na odstránenie
 

@@ -1,4 +1,4 @@
-import { and, count, eq, ne } from 'drizzle-orm'
+import { and, eq, ne } from 'drizzle-orm'
 import { FazaSarze, StavSarze } from '../../shared/domain'
 import { parseDecimal } from '../../shared/utils/number'
 import type { Database } from '../database/client'
@@ -111,16 +111,21 @@ export async function uzavriSarzu(db: Database, pivnicaId: string, id: string) {
 
 export async function vynutVymazanieSarze(db: Database, pivnicaId: string, id: string, confirmation: unknown) {
   if (confirmation !== 'FORCE DELETE') throw new DomainError('Pre vymazanie zadajte presne FORCE DELETE.')
-  const sarza = await najdiSarzu(db, pivnicaId, id)
-  if (!sarza) notFound('Šarža sa nenašla.')
-  const linked = [
-    db.select({ value: count() }).from(sarze).where(eq(sarze.rodicovskaSarzaId, id)).get()?.value ?? 0,
-    db.select({ value: count() }).from(merania).where(eq(merania.sarzaId, id)).get()?.value ?? 0,
-    db.select({ value: count() }).from(zasahy).where(eq(zasahy.sarzaId, id)).get()?.value ?? 0,
-    db.select({ value: count() }).from(presuny).where(eq(presuny.zdrojovaSarzaId, id)).get()?.value ?? 0,
-    db.select({ value: count() }).from(cielePresunu).where(eq(cielePresunu.vytvorenaSarzaId, id)).get()?.value ?? 0,
-  ].reduce((sum, value) => sum + value, 0)
-  if (linked > 0) throw new DomainError('Šaržu nemožno vymazať, pretože má históriu alebo následníkov.', 409)
-  db.delete(sarze).where(eq(sarze.id, id)).run()
+  db.transaction((tx) => {
+    const sarza = tx.select().from(sarze).where(and(eq(sarze.id, id), eq(sarze.pivnicaId, pivnicaId))).get()
+    if (!sarza) notFound('Šarža sa nenašla.')
+    const child = tx.select({ id: sarze.id }).from(sarze).where(eq(sarze.rodicovskaSarzaId, id)).get()
+    const transferChild = tx.select({ id: cielePresunu.id }).from(cielePresunu)
+      .innerJoin(presuny, eq(cielePresunu.presunId, presuny.id))
+      .where(eq(presuny.zdrojovaSarzaId, id)).get()
+    if (child || transferChild) throw new DomainError('Najprv vymažte následníkov tejto šarže. Rodokmeň možno mazať postupne od posledných šarží.', 409)
+
+    tx.delete(merania).where(eq(merania.sarzaId, id)).run()
+    tx.delete(zasahy).where(eq(zasahy.sarzaId, id)).run()
+    tx.delete(cielePresunu).where(eq(cielePresunu.vytvorenaSarzaId, id)).run()
+    // Presun rodiča ostáva zachovaný pre ostatné vetvy; odstráni sa až s rodičom.
+    tx.delete(presuny).where(eq(presuny.zdrojovaSarzaId, id)).run()
+    tx.delete(sarze).where(eq(sarze.id, id)).run()
+  })
   return { deleted: true }
 }

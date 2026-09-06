@@ -148,7 +148,7 @@ Dôležité pravidlá:
 - API vie vrátiť poslednú hodnotu každého typu merania.
 - Uzavretie šarže a presuny rešpektujú objem, kapacitu a históriu.
 - Presuny obsahu medzi nádobami prebiehajú transakčne.
-- `DELETE /api/sarze/:id` vyžaduje potvrdenie `FORCE DELETE` a odmietne vymazanie šarže s históriou alebo následníkmi.
+- `DELETE /api/sarze/:id` vyžaduje potvrdenie `FORCE DELETE` a povolí vymazať iba šaržu bez následníkov. V jednej transakcii odstráni aj jej merania, zásahy a väzby na presuny. Rodokmeň možno postupne vymazať od listov ku koreňu; rodičovská šarža sa znovu neotvára a ostatné vetvy ostávajú zachované.
 
 Testy pokrývajú generovanie ID, snapshot nádoby v šarži, ochranu aktívneho názvu nádoby, append-only merania, latest-per-type, uzavretie, odkalenie, single aj multi-ciel stáčanie, objemovú bilanciu, kapacitu, lineage a ochranu force delete.
 

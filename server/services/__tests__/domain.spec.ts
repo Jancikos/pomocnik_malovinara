@@ -328,10 +328,73 @@ describe('sarza lifecycle services', () => {
     expect(context.db.select().from(sarze).where(eq(sarze.id, result.vytvoreneSarzeIds[0]!)).get()?.rodicovskaSarzaId).toBe(sourceId)
   })
 
-  it('force delete vyžaduje frázu a chráni naviazané dáta', async () => {
+  it('vymaže rozvetvený rodokmeň od listov a zachová ostatné vetvy', async () => {
+    const root = vlozSarzu(FazaSarze.MUST)
+    const split = presunSarzu(context.db, kontextPresunu, {
+      zdrojovaSarzaId: root, cielovaFaza: FazaSarze.ODKALENIE,
+      ciele: [{ nadoba: nadoba('A'), volume: 60 }, { nadoba: nadoba('B'), volume: 40 }],
+    })
+    const [a, b] = split.vytvoreneSarzeIds as [string, string]
+    const next = presunSarzu(context.db, kontextPresunu, {
+      zdrojovaSarzaId: a, cielovaFaza: FazaSarze.KVASENIE,
+      ciele: [{ nadoba: nadoba('C'), volume: 60 }],
+    })
+    const leaf = next.vytvoreneSarzeIds[0]!
+    await vytvorMeranie(context.db, 'pivnica-1', leaf, { type: TypMerania.PH, value: 3.2 })
+    const siblingBefore = await nacitajSarzu(context.db, 'pivnica-1', b)
+    await expect(vynutVymazanieSarze(context.db, 'pivnica-1', a, 'FORCE DELETE')).rejects.toThrow('následníkov')
+    expect(context.db.select().from(zasahy).all()).toHaveLength(2)
+    await vynutVymazanieSarze(context.db, 'pivnica-1', leaf, 'FORCE DELETE')
+    await vynutVymazanieSarze(context.db, 'pivnica-1', a, 'FORCE DELETE')
+    expect(await nacitajSarzu(context.db, 'pivnica-1', b)).toEqual(siblingBefore)
+    expect(context.db.select().from(cielePresunu).all()).toHaveLength(1)
+    expect(context.db.select().from(presuny).all()).toHaveLength(1)
+    expect((await nacitajSarzu(context.db, 'pivnica-1', root)).status).toBe(StavSarze.UZAVRETA)
+    await expect(vynutVymazanieSarze(context.db, 'pivnica-1', root, 'FORCE DELETE')).rejects.toThrow('následníkov')
+    await vynutVymazanieSarze(context.db, 'pivnica-1', b, 'FORCE DELETE')
+    await vynutVymazanieSarze(context.db, 'pivnica-1', root, 'FORCE DELETE')
+    expect(context.db.select().from(sarze).all()).toHaveLength(0)
+    expect(context.db.select().from(presuny).all()).toHaveLength(0)
+    expect(context.db.select().from(cielePresunu).all()).toHaveLength(0)
+    expect(context.db.select().from(merania).all()).toHaveLength(0)
+    expect(context.db.select().from(zasahy).all()).toHaveLength(0)
+    expect(context.db.select().from(vina).all()).toHaveLength(1)
+    expect(context.sqlite.pragma('foreign_key_check')).toEqual([])
+  })
+
+  it('pri chybe mazania vráti aj históriu a väzbu na rodičovský presun', async () => {
+    const root = vlozSarzu(FazaSarze.MUST)
+    const result = presunSarzu(context.db, kontextPresunu, {
+      zdrojovaSarzaId: root, cielovaFaza: FazaSarze.ODKALENIE,
+      ciele: [{ nadoba: nadoba('A'), volume: 100 }],
+    })
+    const leaf = result.vytvoreneSarzeIds[0]!
+    await vytvorMeranie(context.db, 'pivnica-1', leaf, { type: TypMerania.PH, value: 3.2 })
+    await vytvorZasah(context.db, 'pivnica-1', leaf, { type: TypZasahu.SIRENIE, sulfurMg: 25 })
+    const before = await nacitajSarzu(context.db, 'pivnica-1', leaf)
+    context.sqlite.exec("CREATE TRIGGER reject_delete BEFORE DELETE ON sarze BEGIN SELECT RAISE(ABORT, 'test failure'); END")
+    await expect(vynutVymazanieSarze(context.db, 'pivnica-1', leaf, 'FORCE DELETE')).rejects.toThrow('test failure')
+    expect(await nacitajSarzu(context.db, 'pivnica-1', leaf)).toEqual(before)
+    expect(context.db.select().from(cielePresunu).all()).toHaveLength(1)
+  })
+
+  it('nedovolí vymazať šaržu inej pivnice', async () => {
+    const id = vlozSarzu(FazaSarze.MUST)
+    await vytvorMeranie(context.db, 'pivnica-1', id, { type: TypMerania.PH, value: 3.2 })
+    await expect(vynutVymazanieSarze(context.db, 'pivnica-2', id, 'FORCE DELETE')).rejects.toThrow('nenašla')
+    expect(context.db.select().from(sarze).all()).toHaveLength(1)
+    expect(context.db.select().from(merania).all()).toHaveLength(1)
+  })
+
+  it('force delete vyžaduje frázu a vymaže aj históriu poslednej šarže', async () => {
     const protectedId = vlozSarzu(FazaSarze.MUST)
     await vytvorMeranie(context.db, 'pivnica-1', protectedId, { type: TypMerania.PH, value: 3.2 })
-    await expect(vynutVymazanieSarze(context.db, 'pivnica-1', protectedId, 'FORCE DELETE')).rejects.toThrow('históriu')
+    await vytvorZasah(context.db, 'pivnica-1', protectedId, { type: TypZasahu.SIRENIE, sulfurMg: 25 })
+    await expect(vynutVymazanieSarze(context.db, 'pivnica-1', protectedId, 'delete')).rejects.toThrow('FORCE DELETE')
+    expect(context.db.select().from(merania).all()).toHaveLength(1)
+    await expect(vynutVymazanieSarze(context.db, 'pivnica-1', protectedId, 'FORCE DELETE')).resolves.toEqual({ deleted: true })
+    expect(context.db.select().from(merania).all()).toHaveLength(0)
+    expect(context.db.select().from(zasahy).all()).toHaveLength(0)
     const emptyId = vlozSarzu(FazaSarze.MUST, 10, 'Cieľ C', '2026-IO-MUST-099')
     await expect(vynutVymazanieSarze(context.db, 'pivnica-1', emptyId, 'delete')).rejects.toThrow('FORCE DELETE')
     expect(await vynutVymazanieSarze(context.db, 'pivnica-1', emptyId, 'FORCE DELETE')).toEqual({ deleted: true })

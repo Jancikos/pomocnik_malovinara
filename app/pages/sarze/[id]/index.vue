@@ -226,8 +226,9 @@ async function forceDelete() {
           <button class="danger-button" @click="showDanger = !showDanger">Nezvratné vymazanie</button>
         </div>
         <div v-if="showDanger" class="panel">
-          <p>Vymazanie je možné iba bez meraní, zásahov, presunov a následníkov. Zadajte <b>FORCE DELETE</b>.</p>
-          <div class="inline-form">
+          <p v-if="sarza.children.length">Najprv vymažte následníkov tejto šarže. Rodokmeň možno mazať postupne od posledných šarží.</p>
+          <p v-else>Šarža sa natrvalo vymaže spolu so svojimi meraniami, zásahmi a väzbami na presuny. Rodičovská šarža sa znovu neotvorí. Na potvrdenie zadajte <b>FORCE DELETE</b>.</p>
+          <div v-if="sarza.children.length === 0" class="inline-form">
             <input v-model="forceConfirmation" aria-label="Potvrdenie force delete">
             <button class="danger-button" :disabled="saving || forceConfirmation !== 'FORCE DELETE'" @click="forceDelete">Natrvalo vymazať</button>
           </div>

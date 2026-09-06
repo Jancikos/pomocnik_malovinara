@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const cellarFetch = useCellarFetch()
 import { TypZasahu, nazvyZasahov } from '~~/shared/domain'
 import type { DetailSarzeDto } from '~~/shared/types/api'
 
@@ -21,7 +22,7 @@ async function save() {
   saving.value = true
   errorMessage.value = ''
   try {
-    await $fetch('/api/sarze/' + props.sarza.id + '/zasahy', {
+    await cellarFetch('/api/sarze/' + props.sarza.id + '/zasahy', {
       method: 'POST',
       body: {
         type: props.typZasahu,

@@ -26,11 +26,11 @@ export function issueEmailVerificationToken(db: Database, userId: string): strin
   return token
 }
 
-export async function sendVerificationEmail(event: H3Event, email: string, token: string): Promise<{ developmentUrl?: string }> {
+export async function sendVerificationEmail(event: H3Event, email: string, token: string, invitation = false): Promise<{ developmentUrl?: string }> {
   const config = useRuntimeConfig(event)
   const requestOrigin = getRequestURL(event).origin
   const appUrl = String(config.appUrl || requestOrigin).replace(/\/$/, '')
-  const verificationUrl = `${appUrl}/verify-email?token=${encodeURIComponent(token)}`
+  const verificationUrl = `${appUrl}/${invitation ? 'pozvanka' : 'verify-email'}?token=${encodeURIComponent(token)}`
 
   if (!config.smtpHost) {
     if (process.env.NODE_ENV === 'production') {
@@ -52,9 +52,10 @@ export async function sendVerificationEmail(event: H3Event, email: string, token
   await transporter.sendMail({
     from: String(config.emailFrom),
     to: email,
-    subject: 'Potvrďte registráciu vo Vinárskom Pomocníkovi',
-    text: `Registráciu dokončíte otvorením tohto odkazu: ${verificationUrl}\n\nOdkaz je platný 24 hodín.`,
-    html: `<p>Registráciu vo Vinárskom Pomocníkovi dokončíte kliknutím na tlačidlo:</p><p><a href="${verificationUrl}">Potvrdiť e-mail</a></p><p>Odkaz je platný 24 hodín.</p>`,
+    subject: invitation ? 'Pozvánka do pivnice vo Vinárskom Pomocníkovi' : 'Potvrďte registráciu vo Vinárskom Pomocníkovi',
+    text: invitation
+      ? `Boli ste pozvaní do pivnice. Pozvánku prijmete na ${verificationUrl}\n\nPrihláste sa alebo sa zaregistrujte s týmto e-mailom. Odkaz je jednorazový a platí 24 hodín.`
+      : `Registráciu dokončíte otvorením tohto odkazu: ${verificationUrl}\n\nOdkaz je platný 24 hodín.`,
   })
 
   return {}

@@ -195,3 +195,29 @@ node .output/server/index.mjs
 ```
 
 Adresár databázy musí existovať a proces aplikácie doň musí mať právo zapisovať. Databázu pravidelne zálohuj. Pri nasadení novej verzie najskôr aplikuj migrácie a až potom spusti nový build. Node proces je vhodné spravovať cez systemd, správcu procesov alebo kontajner a pred aplikáciu umiestniť reverzný proxy server s HTTPS.
+
+## Zdieľanie pivníc
+
+V nastaveniach pivnice môže vlastník poslať emailovú pozvánku s oprávnením **Iba na čítanie** alebo **Všetky úpravy**. Pozvánka je jednorazová, platí presne 24 hodín od vytvorenia a prijme ju len prihlásený používateľ s overeným emailom z pozvánky. Registrácia nového používateľa prebieha štandardne; po prihlásení v rovnakom prehliadači sa vráti k pozvánke. Nová pozvánka pre rovnaký email a pivnicu zneplatní predchádzajúcu.
+
+Vlastník môže meniť oprávnenia, odoberať prístup a rušiť pozvánky. Používateľ s právom úprav môže upravovať údaje a nastavenia pivnice; správu zdieľania má výhradne vlastník. Režim iba na čítanie kontroluje server pri všetkých zápisoch do pivnice. Osobné nastavenia účtu zostávajú dostupné.
+
+Prepínač aktívnej pivnice je v ľavom paneli a na mobile v hlavičke. Výber sa ukladá do prihlásenej session. Prepnutie načíta nový prehľad; formuláre v staršom okne odmietnu uloženie, ak sa aktívna pivnica zmenila.
+
+Názov, predvolené umiestnenie nádob a logo patria do **Nastavení pivnice**. Logo môže byť PNG, JPEG alebo WebP do 10 MB; ukladá sa do databázy. Migrácia `0006` zachová existujúce členstvá a prevezme predvolené umiestnenie od vlastníka. Členstvo `MEMBER` naďalej znamená právo úprav.
+
+Pozvánky používajú rovnaké SMTP nastavenia ako registrácia. V produkcii nastavte `APP_URL` na verejnú HTTPS adresu. Bez SMTP sa vo vývoji zobrazí odkaz priamo v nastaveniach; email sa vtedy neodosiela. Pri zlyhaní odoslania sa nová pozvánka zruší. Pred nasadením aplikujte databázové migrácie.
+
+## Verziovanie aplikácie
+
+Verzia má formát `MAJOR.MINOR.PATCH` a jej jediným zdrojom je pole `version` v `package.json`. Aktuálna verzia sa pri zostavení vloží do aplikácie a nenápadne sa zobrazuje pod obsahom prihlásených stránok na počítači aj mobile.
+
+Pred vydaním zvýš verziu podľa rozsahu zmien:
+
+```powershell
+npm version patch --no-git-tag-version # oprava chyby, napr. 1.0.0 → 1.0.1
+npm version minor --no-git-tag-version # nová funkcia, napr. 1.0.0 → 1.1.0
+npm version major --no-git-tag-version # nekompatibilná zmena, napr. 1.0.0 → 2.0.0
+```
+
+Spusti iba jeden z týchto príkazov. Aktualizuje `package.json` aj `package-lock.json` bez vytvorenia commitu či Git tagu. Potom aplikáciu znovu zostav (`npm run build`) a nasaď; vo vývoji reštartuj vývojový server.

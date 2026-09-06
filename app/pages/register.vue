@@ -8,7 +8,8 @@ interface RegistrationResult {
   developmentVerificationUrl?: string
 }
 
-const form = reactive({ email: '', nickname: '', password: '' })
+const route = useRoute()
+const form = reactive({ email: String(route.query.email ?? ''), nickname: '', password: '' })
 const result = ref<RegistrationResult | null>(null)
 const errorMessage = ref('')
 const saving = ref(false)

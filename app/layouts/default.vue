@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { version } = useAppConfig()
 const route = useRoute()
 const auth = useAuth()
 const { data: dataPivnice } = await usePivnica()
@@ -34,8 +35,7 @@ const initials = computed(() => auth.current.value?.user.nickname
       </NuxtLink>
 
       <section class="pivnica-switcher">
-        <p class="eyebrow gold">Aktívna pivnica</p>
-        <strong>{{ auth.current.value?.pivnica.name || 'Moja pivnica' }}</strong>
+        <CellarSelector />
         <small>
           {{ dataPivnice?.summary.aktivneSarze || 0 }} šarží ·
           {{ dataPivnice?.summary.totalVolume.toLocaleString('sk-SK') || 0 }} l
@@ -80,6 +80,7 @@ const initials = computed(() => auth.current.value?.user.nickname
         <div>
           <small>Vinársky Pomocník</small>
           <strong>{{ pageTitle }}</strong>
+          <div class="mobile-cellar-selector"><CellarSelector /></div>
         </div>
         <div class="topbar-actions">
           <span class="online-chip"><span class="online-dot" /> Online</span>
@@ -88,7 +89,10 @@ const initials = computed(() => auth.current.value?.user.nickname
           </button>
         </div>
       </header>
-      <main class="page-content"><slot /></main>
+      <main class="page-content">
+        <slot />
+        <footer class="app-version" aria-label="Verzia aplikácie">v{{ version }}</footer>
+      </main>
     </div>
 
     <nav class="bottom-nav" aria-label="Mobilná navigácia">
@@ -104,3 +108,13 @@ const initials = computed(() => auth.current.value?.user.nickname
     </nav>
   </div>
 </template>
+
+<style scoped>
+.app-version {
+  margin-top: 32px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: right;
+}
+</style>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { canEdit } = useAuth()
 import { StavSarze } from '~~/shared/domain'
 
 const filter = ref<'active' | 'all'>('active')
@@ -19,7 +20,7 @@ const visible = computed(() => {
 <template>
   <section>
     <PageHeading eyebrow="Životný cyklus vína" title="Šarže" :description="`${visible.length} zobrazených výrobných šarží`">
-      <NuxtLink class="primary-button" to="/sarze/new"><AppIcon name="plus" /> Nová šarža</NuxtLink>
+      <NuxtLink v-if="canEdit" class="primary-button" to="/sarze/new"><AppIcon name="plus" /> Nová šarža</NuxtLink>
     </PageHeading>
     <div class="toolbar">
       <label class="search-field">

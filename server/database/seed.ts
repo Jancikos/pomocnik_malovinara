@@ -18,7 +18,7 @@ export async function seedDevelopmentData(db: Database): Promise<void> {
       emailVerifiedAt: now,
       defaultContainerLocation: 'Hlavná miestnosť',
     }).run()
-    tx.insert(pivnice).values({ id: 'pivnica-oskar', name: 'Oskarova pivnica' }).run()
+    tx.insert(pivnice).values({ id: 'pivnica-oskar', name: 'Oskarova pivnica', defaultContainerLocation: 'Hlavná miestnosť' }).run()
     tx.insert(clenoviaPivnice).values({ pivnicaId: 'pivnica-oskar', userId: 'user-oskar', role: 'OWNER' }).run()
     tx.insert(vina).values([
       { id: 'vino-io', pivnicaId: 'pivnica-oskar', name: 'Irsai Oliver', code: 'IO', rocnik: 2026, color: FarbaVina.BIELE, notes: 'Aromatické biele víno.' },

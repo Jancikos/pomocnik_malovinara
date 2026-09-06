@@ -1,6 +1,9 @@
+import { version } from './package.json'
+
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-15',
   devtools: { enabled: false },
+  appConfig: { version },
   app: {
     head: {
       title: 'Vinársky Pomocník',

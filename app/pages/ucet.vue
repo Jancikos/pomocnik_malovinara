@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { AuthState } from '~/composables/useAuth'
 
 const auth = useAuth()
 const saving = ref(false)
@@ -8,8 +7,6 @@ const errorMessage = ref('')
 
 const form = reactive({
   nickname: auth.current.value?.user.nickname ?? '',
-  cellarName: auth.current.value?.pivnica.name ?? '',
-  defaultContainerLocation: auth.current.value?.preferences.defaultContainerLocation ?? '',
 })
 
 async function save() {
@@ -17,8 +14,8 @@ async function save() {
   saved.value = false
   errorMessage.value = ''
   try {
-    const result = await $fetch<AuthState>('/api/account', { method: 'PUT', body: form })
-    auth.updateCurrent(result)
+    await $fetch('/api/account', { method: 'PUT', body: form })
+    await auth.load()
     saved.value = true
   }
   catch (error) {
@@ -35,7 +32,7 @@ async function save() {
     <PageHeading
       eyebrow="Osobné nastavenia"
       title="Detail účtu"
-      description="Upravte údaje zobrazované v aplikácii a predvolenú miestnosť nových nádob."
+      description="Upravte svoje osobné údaje zobrazované v aplikácii."
     />
     <form class="panel form-grid elevated-form" @submit.prevent="save">
       <div class="span-2 account-identity">
@@ -52,15 +49,6 @@ async function save() {
       <label class="span-2">
         Prezývka
         <input v-model="form.nickname" required>
-      </label>
-      <label class="span-2">
-        Názov pivnice
-        <input v-model="form.cellarName" required>
-      </label>
-      <label class="span-2">
-        Predvolené umiestnenie sudov a nádob
-        <input v-model="form.defaultContainerLocation" placeholder="Napr. Hlavná miestnosť">
-        <span class="form-hint">Túto hodnotu predvyplníme pri zakladaní novej šarže a pri presune do novej nádoby.</span>
       </label>
       <p v-if="errorMessage" class="form-error span-2">{{ errorMessage }}</p>
       <p v-else-if="saved" class="form-success span-2">Nastavenia boli uložené.</p>

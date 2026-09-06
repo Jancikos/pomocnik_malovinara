@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { canEdit } = useAuth()
 import { FazaSarze } from '~~/shared/domain'
 
 const { data, status, error, refresh } = await usePivnica()
@@ -17,10 +18,13 @@ const filtered = computed(() => {
   <section>
     <PageHeading
       :eyebrow="`${data?.pivnica.name || 'Pivnica'} · aktuálna výroba`"
-      title="Moja pivnica"
+      :title="data?.pivnica.name || 'Moja pivnica'"
       :description="data ? `${data.summary.aktivneSarze} aktívnych šarží vo vašej starostlivosti · ${data.summary.totalVolume.toLocaleString('sk-SK')} l` : ''"
     >
-      <button class="primary-button" @click="showCreateMenu = true">
+      <NuxtLink class="icon-button" to="/pivnica/nastavenia" aria-label="Nastavenia pivnice" title="Nastavenia pivnice">
+        <AppIcon name="settings" :size="24" />
+      </NuxtLink>
+      <button v-if="canEdit" class="primary-button" @click="showCreateMenu = true">
         <AppIcon name="plus" /> Vytvoriť
       </button>
     </PageHeading>

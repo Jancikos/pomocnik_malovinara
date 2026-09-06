@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const cellarFetch = useCellarFetch()
 import type { SarzaFormBody } from '~~/shared/types/sarza-form'
 
 const route = useRoute()
@@ -12,7 +13,7 @@ async function save(form: SarzaFormBody) {
   saving.value = true
   errorMessage.value = ''
   try {
-    const updated = await $fetch<{ id: string }>(`/api/sarze/${id.value}`, { method: 'PUT', body: form })
+    const updated = await cellarFetch<{ id: string }>(`/api/sarze/${id.value}`, { method: 'PUT', body: form })
     await refreshNuxtData([`sarza-${updated.id}`, 'sarze-all', 'sarze-AKTIVNA'])
     await navigateTo(`/sarze/${updated.id}`)
   }

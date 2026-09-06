@@ -27,22 +27,35 @@ export const emailVerificationTokens = sqliteTable('email_verification_tokens', 
 export const pivnice = sqliteTable('pivnice', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
+  logo: text('logo'),
+  defaultContainerLocation: text('default_container_location').notNull().default(''),
   ...timestamps,
 })
 
 export const clenoviaPivnice = sqliteTable('pivnica_members', {
   pivnicaId: text('pivnica_id').notNull().references(() => pivnice.id, { onDelete: 'cascade' }),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  role: text('role', { enum: ['OWNER', 'MEMBER'] }).notNull().default('MEMBER'),
+  role: text('role', { enum: ['OWNER', 'MEMBER', 'VIEWER'] }).notNull().default('MEMBER'),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 }, (table) => [primaryKey({ columns: [table.pivnicaId, table.userId] })])
 
 export const sessions = sqliteTable('sessions', {
   tokenHash: text('token_hash').primaryKey(),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  activePivnicaId: text('active_pivnica_id').references(() => pivnice.id, { onDelete: 'set null' }),
   expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),
 }, (table) => [index('sessions_user_idx').on(table.userId)])
+
+export const cellarInvitations = sqliteTable('cellar_invitations', {
+  id: text('id').primaryKey(),
+  tokenHash: text('token_hash').notNull().unique(),
+  pivnicaId: text('pivnica_id').notNull().references(() => pivnice.id, { onDelete: 'cascade' }),
+  email: text('email').notNull(),
+  role: text('role', { enum: ['MEMBER', 'VIEWER'] }).notNull(),
+  expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+}, (table) => [uniqueIndex('cellar_invitation_email_unique').on(table.pivnicaId, table.email)])
 
 export const vina = sqliteTable('vina', {
   id: text('id').primaryKey(),

@@ -1,4 +1,4 @@
-import { and, eq, like } from 'drizzle-orm'
+import { like } from 'drizzle-orm'
 import type { FazaSarze } from '../../shared/domain'
 import type { Database } from '../database/client'
 import { sarze } from '../database/schema'
@@ -9,7 +9,8 @@ export function dalsieIdSarzi(
 ): string[] {
   const prefix = `${input.year}-${input.kodVina.toUpperCase()}-${input.faza}-`
   const existing = db.select({ id: sarze.id }).from(sarze)
-    .where(and(eq(sarze.pivnicaId, input.pivnicaId), like(sarze.id, `${prefix}%`))).all()
+    // IDs are global primary keys, so another cellar may already use this prefix.
+    .where(like(sarze.id, `${prefix}%`)).all()
   const current = existing.reduce((max, item) => {
     const parsed = Number(item.id.slice(prefix.length))
     return Number.isInteger(parsed) ? Math.max(max, parsed) : max

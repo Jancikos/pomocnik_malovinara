@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const cellarFetch = useCellarFetch()
 import type { VinoFormBody } from '~~/shared/types/vino-form'
 
 const saving = ref(false)
@@ -8,7 +9,7 @@ async function save(form: VinoFormBody) {
   saving.value = true
   errorMessage.value = ''
   try {
-    const created = await $fetch<{ id: string }>('/api/vina', { method: 'POST', body: form })
+    const created = await cellarFetch<{ id: string }>('/api/vina', { method: 'POST', body: form })
     await navigateTo(`/vina/${created.id}`)
   }
   catch (error) {

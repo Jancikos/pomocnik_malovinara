@@ -120,6 +120,14 @@ describe('vino services', () => {
 })
 
 describe('sarza lifecycle services', () => {
+  it('vytvorí šarže v dvoch pivniciach s rovnakým kódom vína bez kolízie ID', async () => {
+    context.db.insert(pivnice).values({ id: 'pivnica-2', name: 'Druhá pivnica' }).run()
+    context.db.insert(vina).values({ id: 'vino-2', pivnicaId: 'pivnica-2', name: 'Irsai Oliver', code: 'IO', rocnik: 2026, color: FarbaVina.BIELE }).run()
+    const first = await vytvorSarzu(context.db, 'pivnica-1', { vinoId: 'vino-1', faza: FazaSarze.MUST, nadoba: nadoba('Tank'), volume: 100 })
+    const second = await vytvorSarzu(context.db, 'pivnica-2', { vinoId: 'vino-2', faza: FazaSarze.MUST, nadoba: nadoba('Tank'), volume: 100 })
+    expect(first.id).not.toBe(second.id)
+    await expect(nacitajSarzu(context.db, 'pivnica-1', second.id)).rejects.toThrow('nenašla')
+  })
   it('generuje deterministické ID a uloží snapshot nádoby priamo do šarže', async () => {
     const first = await vytvorSarzu(context.db, 'pivnica-1', {
       vinoId: 'vino-1',

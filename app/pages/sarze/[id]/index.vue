@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const cellarFetch = useCellarFetch()
+const { canEdit } = useAuth()
 import {
   FazaSarze,
   StavSarze,
@@ -72,7 +74,7 @@ async function saveMeranie() {
   saving.value = true
   actionError.value = ''
   try {
-    await $fetch(`/api/sarze/${id.value}/merania`, { method: 'POST', body: formularMerania })
+    await cellarFetch(`/api/sarze/${id.value}/merania`, { method: 'POST', body: formularMerania })
     await refresh()
     showMeasure.value = false
     formularMerania.value = undefined
@@ -90,7 +92,7 @@ async function uzavriSarzu() {
   saving.value = true
   actionError.value = ''
   try {
-    await $fetch(`/api/sarze/${id.value}/uzavriet`, { method: 'POST' })
+    await cellarFetch(`/api/sarze/${id.value}/uzavriet`, { method: 'POST' })
     await refresh()
   }
   catch (e) {
@@ -105,7 +107,7 @@ async function forceDelete() {
   saving.value = true
   actionError.value = ''
   try {
-    await $fetch(`/api/sarze/${id.value}`, {
+    await cellarFetch(`/api/sarze/${id.value}`, {
       method: 'DELETE',
       body: { confirmation: forceConfirmation.value },
     })
@@ -147,10 +149,10 @@ async function forceDelete() {
       </div>
 
       <div class="action-bar">
-        <button v-if="sarza.status === StavSarze.AKTIVNA" class="primary-button" @click="openMeranie"><AppIcon name="plus" /> Meranie</button>
-        <button v-if="sarza.status === StavSarze.AKTIVNA" class="secondary-button" @click="openZasah"><AppIcon name="plus" /> Zásah</button>
+        <button v-if="canEdit && sarza.status === StavSarze.AKTIVNA" class="primary-button" @click="openMeranie"><AppIcon name="plus" /> Meranie</button>
+        <button v-if="canEdit && sarza.status === StavSarze.AKTIVNA" class="secondary-button" @click="openZasah"><AppIcon name="plus" /> Zásah</button>
 
-        <button v-if="sarza.status === StavSarze.AKTIVNA" class="ghost-button" @click="uzavriSarzu">Uzavrieť šaržu</button>
+        <button v-if="canEdit && sarza.status === StavSarze.AKTIVNA" class="ghost-button" @click="uzavriSarzu">Uzavrieť šaržu</button>
       </div>
       <p v-if="actionError" class="form-error">{{ actionError }}</p>
 
@@ -158,7 +160,7 @@ async function forceDelete() {
         <section class="panel">
           <div class="panel-heading">
             <div><p class="eyebrow gold">Kontrola hodnôt</p><h2>Posledné merania</h2></div>
-            <button v-if="sarza.status === StavSarze.AKTIVNA" class="text-button" @click="openMeranie">+ Pridať</button>
+            <button v-if="canEdit && sarza.status === StavSarze.AKTIVNA" class="text-button" @click="openMeranie">+ Pridať</button>
           </div>
           <div v-if="sarza.faza === FazaSarze.KVASENIE" class="data-row">
             <div>
@@ -179,7 +181,7 @@ async function forceDelete() {
         <section class="panel">
           <div class="panel-heading">
             <div><p class="eyebrow gold">Auditná stopa</p><h2>História zásahov</h2></div>
-            <button v-if="sarza.status === StavSarze.AKTIVNA" class="text-button" @click="openZasah">+ Pridať</button>
+            <button v-if="canEdit && sarza.status === StavSarze.AKTIVNA" class="text-button" @click="openZasah">+ Pridať</button>
           </div>
           <div v-for="item in sarza.zasahy" :key="item.id" class="data-row">
             <div>
@@ -218,9 +220,9 @@ async function forceDelete() {
         </section>
       </div>
 
-      <section class="danger-zone">
+      <section v-if="canEdit" class="danger-zone">
         <div class="admin-actions">
-          <NuxtLink class="ghost-button" :to="`/sarze/${sarza.id}/edit`"><AppIcon name="edit" /> Upraviť základ</NuxtLink>
+          <NuxtLink v-if="canEdit" class="ghost-button" :to="`/sarze/${sarza.id}/edit`"><AppIcon name="edit" /> Upraviť základ</NuxtLink>
           <button class="danger-button" @click="showDanger = !showDanger">Nezvratné vymazanie</button>
         </div>
         <div v-if="showDanger" class="panel">

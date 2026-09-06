@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const cellarFetch = useCellarFetch()
 import type { SarzaFormBody } from '~~/shared/types/sarza-form'
 
 const route = useRoute()
@@ -10,7 +11,7 @@ async function save(form: SarzaFormBody) {
   saving.value = true
   errorMessage.value = ''
   try {
-    const created = await $fetch<{ id: string }>('/api/sarze', { method: 'POST', body: form })
+    const created = await cellarFetch<{ id: string }>('/api/sarze', { method: 'POST', body: form })
     await navigateTo(`/sarze/${created.id}`)
   }
   catch (error) {

@@ -78,6 +78,10 @@ defineProps<{ name: string; size?: number }>()
     <template v-else-if="name === 'plus'">
       <path d="M12 5v14M5 12h14" />
     </template>
+    <template v-else-if="name === 'settings'">
+      <path d="m9 3-.5 2-1.7 1L4.8 5.5l-2 3.5 1.5 1.5v2L2.8 14l2 3.5 2-.5 1.7 1 .5 2h4l.5-2 1.7-1 2 .5 2-3.5-1.5-1.5v-2L19.2 9l-2-3.5-2 .5-1.7-1-.5-2Z" transform="translate(1 0.5)" />
+      <circle cx="12" cy="12" r="3" />
+    </template>
     <template v-else-if="name === 'edit'">
       <path d="M12 20h9" />
       <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />

@@ -1,17 +1,10 @@
 import type { H3Event } from 'h3'
 import { getDatabase, type Database } from '../database/client'
 import { initializeDatabase } from '../database/init'
-import { requireAuth } from './auth'
+import { requireAuth, requireCellarWrite } from './auth'
 import { toHttpError } from './errors'
 
-export interface AuthContext {
-  userId: string
-  userNickname: string
-  userEmail: string
-  defaultContainerLocation: string
-  pivnicaId: string
-  nazovPivnice: string
-}
+export type AuthContext = Awaited<ReturnType<typeof requireAuth>>
 
 export async function withDatabase<T>(action: (db: Database) => Promise<T> | T): Promise<T> {
   try {
@@ -23,5 +16,12 @@ export async function withDatabase<T>(action: (db: Database) => Promise<T> | T):
 }
 
 export async function withAuth<T>(event: H3Event, action: (db: Database, context: AuthContext) => Promise<T> | T): Promise<T> {
-  return withDatabase(async (db) => action(db, await requireAuth(event, db)))
+  return withDatabase(async (db) => {
+    const context = await requireAuth(event, db)
+    const path = event.path.split('?')[0]!.replace(/\/+$/, '')
+    const personalActions = ['/api/account', '/api/cellars/select', '/api/invitations/accept']
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(event.method)
+      && !personalActions.includes(path)) requireCellarWrite(context.role)
+    return action(db, context)
+  })
 }

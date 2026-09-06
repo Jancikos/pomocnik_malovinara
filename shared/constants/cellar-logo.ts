@@ -1,0 +1,2 @@
+export const CELLAR_LOGO_MAX_BYTES = 10_000_000
+export const CELLAR_LOGO_MAX_DATA_URL_LENGTH = Math.ceil(CELLAR_LOGO_MAX_BYTES / 3) * 4 + 64

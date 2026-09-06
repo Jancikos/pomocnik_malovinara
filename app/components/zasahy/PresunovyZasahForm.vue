@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const cellarFetch = useCellarFetch()
 import { FazaSarze, TypMerania, TypNadoby, TypZasahu, moznostiFazSarze, nazvyFazSarze, nazvyZasahov } from '~~/shared/domain'
 import type { DetailSarzeDto } from '~~/shared/types/api'
 import type { DetailSarzeFormBody } from '~~/shared/types/sarza-form'
@@ -70,7 +71,7 @@ async function save() {
   saving.value = true
   errorMessage.value = ''
   try {
-    const result = await $fetch<{ vytvoreneSarzeIds: string[] }>('/api/presuny', {
+    const result = await cellarFetch<{ vytvoreneSarzeIds: string[] }>('/api/presuny', {
       method: 'POST',
       body: {
         type: props.typZasahu,

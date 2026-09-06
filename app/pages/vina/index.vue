@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { canEdit } = useAuth()
 import { nazvyFariebVina } from '~~/shared/domain'
 import type { VinoDto } from '~~/shared/types/api'
 
@@ -30,7 +31,7 @@ function statistikyVina(vino: VinoDto) {
 <template>
   <section>
     <PageHeading eyebrow="Portfólio pivnice" title="Moje vína" :description="`${vina?.length || 0} vín naprieč všetkými ročníkmi`">
-      <NuxtLink class="primary-button" to="/vina/new"><AppIcon name="plus" /> Vytvoriť</NuxtLink>
+      <NuxtLink v-if="canEdit" class="primary-button" to="/vina/new"><AppIcon name="plus" /> Vytvoriť</NuxtLink>
     </PageHeading>
 
     <div class="toolbar vina-toolbar">

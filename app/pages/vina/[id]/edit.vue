@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const cellarFetch = useCellarFetch()
 import type { VinoFormBody } from '~~/shared/types/vino-form'
 
 const route = useRoute()
@@ -11,7 +12,7 @@ async function save(form: VinoFormBody) {
   saving.value = true
   errorMessage.value = ''
   try {
-    const updated = await $fetch<{ id: string }>(`/api/vina/${id.value}`, { method: 'PUT', body: form })
+    const updated = await cellarFetch<{ id: string }>(`/api/vina/${id.value}`, { method: 'PUT', body: form })
     await refreshNuxtData([`vino-${updated.id}`, 'vina'])
     await navigateTo(`/vina/${updated.id}`)
   }

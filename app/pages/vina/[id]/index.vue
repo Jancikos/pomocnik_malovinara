@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { canEdit } = useAuth()
 const route = useRoute()
 const { data: vino, error } = await useVino(() => String(route.params.id))
 const { data: sarze } = await useSarze()
@@ -11,8 +12,8 @@ const vinoSarze = computed(() => sarze.value?.filter((sarza) => sarza.vinoId ===
     <p v-if="error" class="form-error">Víno sa nenašlo.</p>
     <template v-else-if="vino">
       <PageHeading :eyebrow="`${vino.code} · ${vino.rocnik}`" :title="vino.name" :description="vino.notes || ''">
-        <NuxtLink class="ghost-button" :to="`/vina/${vino.id}/edit`"><AppIcon name="edit" /> Upraviť</NuxtLink>
-        <NuxtLink class="primary-button" :to="`/sarze/new?vino=${vino.id}`">+ Prvá šarža</NuxtLink>
+        <NuxtLink v-if="canEdit" class="ghost-button" :to="`/vina/${vino.id}/edit`"><AppIcon name="edit" /> Upraviť</NuxtLink>
+        <NuxtLink v-if="canEdit" class="primary-button" :to="`/sarze/new?vino=${vino.id}`">+ Prvá šarža</NuxtLink>
       </PageHeading>
       <div class="detail-columns">
         <section class="panel">

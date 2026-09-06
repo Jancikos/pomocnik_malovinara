@@ -39,6 +39,7 @@ const ikonyZasahov: Record<TypZasahu, string> = {
   [TypZasahu.STACANIE]: 'transfer',
   [TypZasahu.SIRENIE]: 'shield-plus',
   [TypZasahu.DOSLADZANIE]: 'sweetness',
+  [TypZasahu.PRIDANIE_VODY]: 'h2o',
 }
 
 const forceConfirmation = ref('')
@@ -187,6 +188,10 @@ async function forceDelete() {
               <template v-if="item.type === TypZasahu.DOSLADZANIE">
                 <small>Cukornatosť: {{ formatHodnotaMerania(item.pociatocnaCukornatost) }} → {{ formatHodnotaMerania(item.pozadovanaCukornatost) }} °NM</small>
                 <small>Skutočne pridaný cukor: {{ formatHodnotaMerania(item.pridanyCukorKg) }} kg</small>
+              </template>
+              <template v-if="item.type === TypZasahu.PRIDANIE_VODY">
+                <small>Pridaná voda: {{ formatHodnotaMerania(item.pridanaVodaLitrov) }} l · Objem pred zásahom: {{ formatHodnotaMerania(item.objemPredZasahom) }} l</small>
+                <small>Cieľová cukornatosť vody: {{ formatHodnotaMerania(item.pozadovanaCukornatost) }} °NM · Pridaný cukor: {{ formatHodnotaMerania(item.pridanyCukorKg) }} kg</small>
               </template>
               <small v-if="item.notes">{{ item.notes }}</small>
             </div>

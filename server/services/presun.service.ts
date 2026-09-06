@@ -30,6 +30,7 @@ export function presunSarzu(
   const typZasahu = Object.values(TypZasahu).includes(body.type as TypZasahu)
     ? body.type as TypZasahu
     : cielovaFaza === FazaSarze.ODKALENIE ? TypZasahu.ODKALENIE : TypZasahu.STACANIE
+  if (typZasahu === TypZasahu.PRIDANIE_VODY) throw new DomainError('Pridanie vody nevytvára nové šarže.')
   if (typZasahu === TypZasahu.DOSLADZANIE) throw new DomainError('Dosládzanie nevytvára nové šarže.')
   if (typZasahu === TypZasahu.SIRENIE) throw new DomainError('Sírenie nevytvára nové šarže.')
 

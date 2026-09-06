@@ -110,6 +110,8 @@ export const zasahy = sqliteTable('zasahy', {
   pociatocnaCukornatost: real('pociatocna_cukornatost'),
   pozadovanaCukornatost: real('pozadovana_cukornatost'),
   pridanyCukorKg: real('pridany_cukor_kg'),
+  pridanaVodaLitrov: real('pridana_voda_litrov'),
+  objemPredZasahom: real('objem_pred_zasahom'),
   vykonaneAt: integer('vykonane_at', { mode: 'timestamp_ms' }).notNull(),
   notes: text('notes'),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`),

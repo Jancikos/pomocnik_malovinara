@@ -471,3 +471,44 @@ describe('meranie pri dosládzaní', () => {
     expect(context.db.select().from(merania).all()).toHaveLength(0)
   })
 })
+
+describe('pridanie vody', () => {
+  const body = { type: TypZasahu.PRIDANIE_VODY, pridanaVodaLitrov: 10, pozadovanaCukornatost: 20, pridanyCukorKg: 3 }
+  it('zvýši objem o vodu a uloží skutočný cukor aj pôvodný objem', async () => {
+    const id = vlozSarzu(FazaSarze.KVASENIE, 100)
+    await vytvorZasah(context.db, 'pivnica-1', id, body)
+    let detail = await nacitajSarzu(context.db, 'pivnica-1', id)
+    expect(detail).toMatchObject({ volume: 110, status: StavSarze.AKTIVNA })
+    expect(detail.zasahy[0]).toMatchObject({ pridanaVodaLitrov: 10, objemPredZasahom: 100, pridanyCukorKg: 3, pozadovanaCukornatost: 20 })
+    expect(detail.merania).toHaveLength(0)
+    await vytvorZasah(context.db, 'pivnica-1', id, { ...body, pridanaVodaLitrov: 5, pridanyCukorKg: 0 })
+    detail = await nacitajSarzu(context.db, 'pivnica-1', id)
+    expect(detail.volume).toBe(115)
+    expect(detail.zasahy).toHaveLength(2)
+  })
+  it('odmietne prekročenie kapacity bez zmeny objemu a histórie', async () => {
+    const id = vlozSarzu(FazaSarze.KVASENIE, 195)
+    await expect(vytvorZasah(context.db, 'pivnica-1', id, body)).rejects.toThrow('kapacitu')
+    expect((await nacitajSarzu(context.db, 'pivnica-1', id)).volume).toBe(195)
+    expect(context.db.select().from(zasahy).all()).toHaveLength(0)
+  })
+  it('vráti objem späť, ak zlyhá uloženie zásahu', async () => {
+    const id = vlozSarzu(FazaSarze.KVASENIE)
+    context.sqlite.exec("CREATE TRIGGER reject_action BEFORE INSERT ON zasahy BEGIN SELECT RAISE(ABORT, 'test failure'); END")
+    await expect(vytvorZasah(context.db, 'pivnica-1', id, body)).rejects.toThrow('test failure')
+    expect((await nacitajSarzu(context.db, 'pivnica-1', id)).volume).toBe(100)
+  })
+  it.each(['pridanaVodaLitrov', 'pozadovanaCukornatost', 'pridanyCukorKg'])('validuje pole %s', async (key) => {
+    const id = vlozSarzu(FazaSarze.KVASENIE)
+    for (const value of [undefined, null, '', -1, 'abc', true, Infinity]) {
+      await expect(vytvorZasah(context.db, 'pivnica-1', id, { ...body, [key]: value })).rejects.toThrow()
+    }
+    expect((await nacitajSarzu(context.db, 'pivnica-1', id)).volume).toBe(100)
+  })
+  it('odmietne nulový objem vody a uzavretú šaržu', async () => {
+    const id = vlozSarzu(FazaSarze.KVASENIE)
+    await expect(vytvorZasah(context.db, 'pivnica-1', id, { ...body, pridanaVodaLitrov: 0 })).rejects.toThrow()
+    await uzavriSarzu(context.db, 'pivnica-1', id)
+    await expect(vytvorZasah(context.db, 'pivnica-1', id, body)).rejects.toThrow('uzavretej')
+  })
+})

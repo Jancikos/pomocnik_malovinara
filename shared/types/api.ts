@@ -54,6 +54,8 @@ export interface MeranieDto extends PosledneMeranieDto {
 }
 
 export interface ZasahDto {
+  pridanaVodaLitrov: number | null
+  objemPredZasahom: number | null
   pociatocnaCukornatost: number | null
   pozadovanaCukornatost: number | null
   pridanyCukorKg: number | null

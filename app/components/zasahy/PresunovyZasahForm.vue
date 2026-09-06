@@ -6,7 +6,7 @@ import { navrhniNazovNadoby } from '~~/shared/utils/nazov-nadoby'
 
 const props = defineProps<{
   sarza: DetailSarzeDto
-  typZasahu: Exclude<TypZasahu, TypZasahu.SIRENIE>
+  typZasahu: Exclude<TypZasahu, TypZasahu.SIRENIE | TypZasahu.DOSLADZANIE>
   icon: string
 }>()
 

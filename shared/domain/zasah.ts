@@ -3,6 +3,7 @@ export enum TypZasahu {
   ODKALENIE = 'ODKALENIE',
   KVASENIE = 'KVASENIE',
   SIRENIE = 'SIRENIE',
+  DOSLADZANIE = 'DOSLADZANIE',
 }
 
 export const nazvyZasahov: Record<TypZasahu, string> = {
@@ -10,6 +11,7 @@ export const nazvyZasahov: Record<TypZasahu, string> = {
   [TypZasahu.ODKALENIE]: 'Odkalenie',
   [TypZasahu.KVASENIE]: 'Kvasenie',
   [TypZasahu.SIRENIE]: 'Sírenie',
+  [TypZasahu.DOSLADZANIE]: 'Dosládzanie',
 }
 
 export const moznostiZasahov = Object.values(TypZasahu).map((value) => ({

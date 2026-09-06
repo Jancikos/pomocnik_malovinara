@@ -38,6 +38,7 @@ const ikonyZasahov: Record<TypZasahu, string> = {
   [TypZasahu.ODKALENIE]: 'filter',
   [TypZasahu.STACANIE]: 'transfer',
   [TypZasahu.SIRENIE]: 'shield-plus',
+  [TypZasahu.DOSLADZANIE]: 'sweetness',
 }
 
 const forceConfirmation = ref('')
@@ -183,6 +184,10 @@ async function forceDelete() {
             <div>
               <strong>{{ nazvyZasahov[item.type] }}</strong>
               <small>{{ formatDatumCas(item.vykonaneAt) }}</small>
+              <template v-if="item.type === TypZasahu.DOSLADZANIE">
+                <small>Cukornatosť: {{ formatHodnotaMerania(item.pociatocnaCukornatost) }} → {{ formatHodnotaMerania(item.pozadovanaCukornatost) }} °NM</small>
+                <small>Skutočne pridaný cukor: {{ formatHodnotaMerania(item.pridanyCukorKg) }} kg</small>
+              </template>
               <small v-if="item.notes">{{ item.notes }}</small>
             </div>
             <AppIcon :name="ikonyZasahov[item.type]" :size="18" />

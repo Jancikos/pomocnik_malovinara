@@ -54,6 +54,9 @@ export interface MeranieDto extends PosledneMeranieDto {
 }
 
 export interface ZasahDto {
+  pociatocnaCukornatost: number | null
+  pozadovanaCukornatost: number | null
+  pridanyCukorKg: number | null
   id: string
   sarzaId: string
   type: TypZasahu

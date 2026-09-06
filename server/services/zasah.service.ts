@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto'
 import { eq } from 'drizzle-orm'
-import { StavSarze, TypZasahu } from '../../shared/domain'
+import { StavSarze, TypZasahu, TypMerania, jednotkyMerani } from '../../shared/domain'
 import { parseDecimal } from '../../shared/utils/number'
 import type { Database } from '../database/client'
-import { zasahy } from '../database/schema'
+import { zasahy, merania } from '../database/schema'
 import { najdiSarzu } from '../repositories/sarza.repository'
 import { DomainError, notFound } from '../utils/errors'
 
@@ -28,13 +28,44 @@ export async function vytvorZasah(db: Database, pivnicaId: string, sarzaId: stri
     notes = notes ? sulfurNote + '\n' + notes : sulfurNote
   }
 
+  const dosladzanie: { pociatocnaCukornatost?: number; pozadovanaCukornatost?: number; pridanyCukorKg?: number } = {}
+  if (type === TypZasahu.DOSLADZANIE) {
+    const fields = {
+      pociatocnaCukornatost: 'Počiatočná cukornatosť',
+      pozadovanaCukornatost: 'Požadovaná cukornatosť',
+      pridanyCukorKg: 'Skutočne pridaný cukor',
+    } as const
+    for (const key of Object.keys(fields) as Array<keyof typeof fields>) {
+      const raw = body[key]
+      if ((typeof raw !== 'number' && typeof raw !== 'string') || (typeof raw === 'string' && !raw.trim())) {
+        throw new DomainError(fields[key] + ' musí byť vyplnené číslo.')
+      }
+      const value = parseDecimal(raw, fields[key])
+      if (value < 0) throw new DomainError(fields[key] + ' nesmie byť záporné.')
+      dosladzanie[key] = value
+    }
+  }
+
   const id = randomUUID()
-  db.insert(zasahy).values({
-    id,
-    sarzaId,
-    type,
-    vykonaneAt,
-    notes,
-  }).run()
+  db.transaction((tx) => {
+    tx.insert(zasahy).values({
+      id,
+      sarzaId,
+      type,
+      vykonaneAt,
+      notes,
+      ...dosladzanie,
+    }).run()
+    if (type === TypZasahu.DOSLADZANIE) {
+      tx.insert(merania).values({
+        id: randomUUID(),
+        sarzaId,
+        type: TypMerania.CUKORNATOST,
+        value: dosladzanie.pozadovanaCukornatost!,
+        unit: jednotkyMerani[TypMerania.CUKORNATOST],
+        zmeraneAt: vykonaneAt,
+      }).run()
+    }
+  })
   return db.select().from(zasahy).where(eq(zasahy.id, id)).get()
 }

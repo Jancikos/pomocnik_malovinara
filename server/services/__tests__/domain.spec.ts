@@ -404,3 +404,70 @@ describe('presun do pôvodnej nádoby', () => {
     expect(presunSarzu(context.db, kontextPresunu, body).vytvoreneSarzeIds).toHaveLength(2)
   })
 })
+
+describe('dosládzanie', () => {
+  it('uloží skutočne pridané kg aj keď sú iné ako výpočet a ponechá šaržu aktívnu', async () => {
+    const id = vlozSarzu(FazaSarze.KVASENIE, 100)
+    const result = await vytvorZasah(context.db, 'pivnica-1', id, {
+      type: TypZasahu.DOSLADZANIE,
+      pociatocnaCukornatost: 18,
+      pozadovanaCukornatost: 20,
+      pridanyCukorKg: '3,1',
+    })
+    expect(result).toMatchObject({ pociatocnaCukornatost: 18, pozadovanaCukornatost: 20, pridanyCukorKg: 3.1 })
+    const detail = await nacitajSarzu(context.db, 'pivnica-1', id)
+    expect(detail.zasahy[0]).toMatchObject({ type: TypZasahu.DOSLADZANIE, pociatocnaCukornatost: 18, pozadovanaCukornatost: 20, pridanyCukorKg: 3.1 })
+    expect(detail.status).toBe(StavSarze.AKTIVNA)
+    expect(detail.volume).toBe(100)
+    expect(detail.merania).toHaveLength(1)
+    expect(detail.posledneMerania.CUKORNATOST).toMatchObject({ value: 20, unit: '°NM', zmeraneAt: result!.vykonaneAt.toISOString() })
+    expect(context.db.select().from(presuny).all()).toHaveLength(0)
+  })
+  it.each(['pociatocnaCukornatost', 'pozadovanaCukornatost', 'pridanyCukorKg'])('validuje povinné nezáporné číslo %s', async (key) => {
+    const id = vlozSarzu(FazaSarze.KVASENIE)
+    for (const value of [undefined, null, '', ' ', -1, 'abc', true, Infinity]) {
+      await expect(vytvorZasah(context.db, 'pivnica-1', id, {
+        type: TypZasahu.DOSLADZANIE, pociatocnaCukornatost: 18, pozadovanaCukornatost: 20, pridanyCukorKg: 2.5, [key]: value,
+      })).rejects.toThrow()
+    }
+    expect(context.db.select().from(zasahy).all()).toHaveLength(0)
+  })
+  it('uloží aj nulové množstvo cukru', async () => {
+    const id = vlozSarzu(FazaSarze.KVASENIE)
+    expect(await vytvorZasah(context.db, 'pivnica-1', id, {
+      type: TypZasahu.DOSLADZANIE, pociatocnaCukornatost: 20, pozadovanaCukornatost: 20, pridanyCukorKg: 0,
+    })).toMatchObject({ pridanyCukorKg: 0 })
+  })
+  it('nedovolí vykonať dosládzanie ako presun', () => {
+    const id = vlozSarzu(FazaSarze.ODKALENIE)
+    expect(() => presunSarzu(context.db, kontextPresunu, {
+      type: TypZasahu.DOSLADZANIE, zdrojovaSarzaId: id, cielovaFaza: FazaSarze.KVASENIE,
+      ciele: [{ nadoba: nadoba('Cieľ'), volume: 100 }],
+    })).toThrow('nevytvára nové šarže')
+  })
+})
+
+
+describe('meranie pri dosládzaní', () => {
+  it('pridá požadovanú hodnotu v čase zásahu a zachová staršie meranie', async () => {
+    const id = vlozSarzu(FazaSarze.KVASENIE)
+    await vytvorMeranie(context.db, 'pivnica-1', id, { type: TypMerania.CUKORNATOST, value: 18, zmeraneAt: '2026-08-01T08:00:00Z' })
+    await vytvorZasah(context.db, 'pivnica-1', id, {
+      type: TypZasahu.DOSLADZANIE, pociatocnaCukornatost: 18, pozadovanaCukornatost: 21,
+      pridanyCukorKg: 4, vykonaneAt: '2026-08-02T09:30:00Z',
+    })
+    const detail = await nacitajSarzu(context.db, 'pivnica-1', id)
+    expect(detail.merania).toHaveLength(2)
+    expect(detail.posledneMerania.CUKORNATOST).toMatchObject({ value: 21, zmeraneAt: '2026-08-02T09:30:00.000Z' })
+    expect(detail.merania[1]?.value).toBe(18)
+  })
+  it('pri zlyhaní merania neuloží ani zásah', async () => {
+    const id = vlozSarzu(FazaSarze.KVASENIE)
+    context.sqlite.exec("CREATE TRIGGER reject_measurement BEFORE INSERT ON merania BEGIN SELECT RAISE(ABORT, 'test failure'); END")
+    await expect(vytvorZasah(context.db, 'pivnica-1', id, {
+      type: TypZasahu.DOSLADZANIE, pociatocnaCukornatost: 18, pozadovanaCukornatost: 20, pridanyCukorKg: 2.5,
+    })).rejects.toThrow('test failure')
+    expect(context.db.select().from(zasahy).all()).toHaveLength(0)
+    expect(context.db.select().from(merania).all()).toHaveLength(0)
+  })
+})

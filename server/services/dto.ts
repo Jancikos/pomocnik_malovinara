@@ -37,7 +37,7 @@ export function detailSarzeDto(summary: PrehladSarzeDto, merania: MeranieDto[], 
     ...summary,
     pociatocnaCukornatost,
     merania,
-    zasahy: zasahy.map((item) => ({ id: item.id, sarzaId: item.sarzaId, type: item.type, vykonaneAt: item.vykonaneAt.toISOString(), notes: item.notes, createdAt: item.createdAt.toISOString() })),
+    zasahy: zasahy.map((item) => ({ id: item.id, sarzaId: item.sarzaId, type: item.type, pociatocnaCukornatost: item.pociatocnaCukornatost, pozadovanaCukornatost: item.pozadovanaCukornatost, pridanyCukorKg: item.pridanyCukorKg, vykonaneAt: item.vykonaneAt.toISOString(), notes: item.notes, createdAt: item.createdAt.toISOString() })),
     children,
   }
 }

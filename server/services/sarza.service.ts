@@ -31,6 +31,7 @@ export async function nacitajSarzu(db: Database, pivnicaId: string, id: string) 
     riadkyMerani.map(meranieDto),
     riadkyZasahov,
     children,
+    row.sarza.faza === FazaSarze.KVASENIE ? row.sarza.pociatocnaCukornatost : null,
   )
 }
 

@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto'
-import { and, eq } from 'drizzle-orm'
-import { FazaSarze, StavSarze, TypZasahu, overBilanciuObjemu } from '../../shared/domain'
+import { and, desc, eq, ne } from 'drizzle-orm'
+import { FazaSarze, StavSarze, TypMerania, TypZasahu, overBilanciuObjemu } from '../../shared/domain'
 import { parseDecimal } from '../../shared/utils/number'
 import type { Database } from '../database/client'
-import { sarze, zasahy, cielePresunu, presuny, vina } from '../database/schema'
+import { sarze, zasahy, cielePresunu, presuny, vina, merania } from '../database/schema'
 import { DomainError, notFound } from '../utils/errors'
 import { dalsieIdSarzi } from './id-sarze'
 import { nacitajSnapshotNadoby, type SnapshotNadoby } from './snapshot-nadoby'
@@ -43,20 +43,30 @@ export function presunSarzu(
     const source = tx.select().from(sarze).where(and(eq(sarze.id, zdrojovaSarzaId), eq(sarze.pivnicaId, context.pivnicaId))).get()
     if (!source) notFound('Zdrojová šarža sa nenašla.')
     if (source.status !== StavSarze.AKTIVNA) throw new DomainError('Zdrojová šarža nie je aktívna.', 409)
-    if (cielNames.includes(source.nazovNadoby.toLocaleLowerCase('sk'))) {
-      throw new DomainError('Cieľová nádoba musí byť odlišná od zdrojovej.')
-    }
 
     if (source.faza === cielovaFaza) throw new DomainError('Cieľová fáza musí byť odlišná od aktuálnej fázy šarže.')
     if (typZasahu === TypZasahu.ODKALENIE && cielovaFaza !== FazaSarze.ODKALENIE) throw new DomainError('Odkalenie vytvára šarže vo fáze odkalenia.')
     if (typZasahu === TypZasahu.KVASENIE && cielovaFaza !== FazaSarze.KVASENIE) throw new DomainError('Kvasenie vytvára šarže vo fáze kvasenia.')
+    let pociatocnaCukornatost: number | null = null
+    if (typZasahu === TypZasahu.KVASENIE) {
+      const raw = body.pociatocnaCukornatost === undefined
+        ? tx.select().from(merania)
+            .where(and(eq(merania.sarzaId, source.id), eq(merania.type, TypMerania.CUKORNATOST)))
+            .orderBy(desc(merania.zmeraneAt)).get()?.value
+        : body.pociatocnaCukornatost
+      if (raw !== undefined && raw !== null && !(typeof raw === 'string' && raw.trim() === '')) {
+        if (typeof raw !== 'number' && typeof raw !== 'string') throw new DomainError('Počiatočná cukornatosť musí byť platné číslo.')
+        pociatocnaCukornatost = parseDecimal(raw, 'Počiatočná cukornatosť')
+        if (pociatocnaCukornatost < 0) throw new DomainError('Počiatočná cukornatosť nesmie byť záporná.')
+      }
+    }
     overBilanciuObjemu(source.volume, ciele, lossVolume)
 
     const vino = tx.select().from(vina).where(and(eq(vina.id, source.vinoId), eq(vina.pivnicaId, context.pivnicaId))).get()
     if (!vino) notFound('Víno sa nenašlo.')
 
     const occupiedNames = tx.select({ name: sarze.nazovNadoby }).from(sarze)
-      .where(and(eq(sarze.pivnicaId, context.pivnicaId), eq(sarze.status, StavSarze.AKTIVNA))).all()
+      .where(and(eq(sarze.pivnicaId, context.pivnicaId), eq(sarze.status, StavSarze.AKTIVNA), ne(sarze.id, source.id))).all()
       .map((item) => item.name.toLocaleLowerCase('sk'))
     const occupiedTarget = ciele.find((item) => occupiedNames.includes(item.nazovNadoby.toLocaleLowerCase('sk')))
     if (occupiedTarget) throw new DomainError(`Nádoba ${occupiedTarget.nazovNadoby} už obsahuje aktívnu šaržu.`, 409)
@@ -99,6 +109,7 @@ export function presunSarzu(
         kapacitaNadoby: ciel.kapacitaNadoby,
         umiestnenieNadoby: ciel.umiestnenieNadoby,
         rodicovskaSarzaId: source.id,
+        pociatocnaCukornatost,
         volume: ciel.volume,
         status: StavSarze.AKTIVNA,
         openedAt: vykonaneAt,

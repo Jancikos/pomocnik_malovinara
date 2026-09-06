@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FazaSarze, TypNadoby, TypZasahu, moznostiFazSarze, nazvyFazSarze, nazvyZasahov } from '~~/shared/domain'
+import { FazaSarze, TypMerania, TypNadoby, TypZasahu, moznostiFazSarze, nazvyFazSarze, nazvyZasahov } from '~~/shared/domain'
 import type { DetailSarzeDto } from '~~/shared/types/api'
 import type { DetailSarzeFormBody } from '~~/shared/types/sarza-form'
 import { navrhniNazovNadoby } from '~~/shared/utils/nazov-nadoby'
@@ -25,6 +25,7 @@ const form = reactive({
   vykonaneAt: new Date().toISOString().slice(0, 16),
   notes: '',
   lossVolume: 0,
+  pociatocnaCukornatost: '' as number | string,
   cielovaFaza: pevnaCielovaFaza.value ?? moznostiCielovejFazy.value[0]?.value ?? FazaSarze.ZRENIE,
   ciele: [] as DetailSarzeFormBody[],
 })
@@ -37,6 +38,7 @@ watch(pevnaCielovaFaza, (phase) => {
 }, { immediate: true })
 
 watch(() => props.sarza.id, () => {
+  form.pociatocnaCukornatost = props.sarza.posledneMerania[TypMerania.CUKORNATOST]?.value ?? ''
   form.ciele = [novyCiel(props.sarza.volume, props.sarza.nadoba.type, props.sarza.nadoba.capacity)]
 }, { immediate: true })
 
@@ -75,6 +77,7 @@ async function save() {
         zdrojovaSarzaId: props.sarza.id,
         cielovaFaza: form.cielovaFaza,
         lossVolume: form.lossVolume,
+        pociatocnaCukornatost: props.typZasahu === TypZasahu.KVASENIE ? form.pociatocnaCukornatost : undefined,
         vykonaneAt: form.vykonaneAt,
         notes: form.notes,
         ciele: form.ciele,
@@ -112,6 +115,10 @@ async function save() {
       <span>Cieľová fáza</span>
       <strong>{{ nazvyFazSarze[form.cielovaFaza] }}</strong>
     </div>
+    <label v-if="typZasahu === TypZasahu.KVASENIE" class="span-2">
+      Počiatočná cukornatosť (°NM)
+      <input v-model.number="form.pociatocnaCukornatost" type="number" min="0" step="any" inputmode="decimal">
+    </label>
     <label>
       Strata (l)
       <input v-model.number="form.lossVolume" type="number" min="0" step="0.1" inputmode="decimal" required>

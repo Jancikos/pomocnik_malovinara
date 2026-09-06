@@ -78,6 +78,7 @@ export const sarze = sqliteTable('sarze', {
   typNadoby: text('typ_nadoby').$type<TypNadoby>().notNull(),
   kapacitaNadoby: real('kapacita_nadoby').notNull(),
   umiestnenieNadoby: text('umiestnenie_nadoby'),
+  pociatocnaCukornatost: real('pociatocna_cukornatost'),
   rodicovskaSarzaId: text('rodicovska_sarza_id').references((): AnySQLiteColumn => sarze.id, { onDelete: 'restrict' }),
   volume: real('volume').notNull(),
   status: text('status').$type<StavSarze>().notNull(),

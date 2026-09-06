@@ -329,3 +329,78 @@ describe('sarza lifecycle services', () => {
     expect(await vynutVymazanieSarze(context.db, 'pivnica-1', emptyId, 'FORCE DELETE')).toEqual({ deleted: true })
   })
 })
+
+
+describe('počiatočná cukornatosť kvasenia', () => {
+  async function pripravZdroj() {
+    const id = vlozSarzu(FazaSarze.ODKALENIE)
+    await vytvorMeranie(context.db, 'pivnica-1', id, { type: TypMerania.CUKORNATOST, value: 18.5, zmeraneAt: '2026-08-02T08:00:00Z' })
+    await vytvorMeranie(context.db, 'pivnica-1', id, { type: TypMerania.CUKORNATOST, value: 20, zmeraneAt: '2026-08-01T08:00:00Z' })
+    await vytvorMeranie(context.db, 'pivnica-1', id, { type: TypMerania.TEPLOTA, value: 25, zmeraneAt: '2026-08-03T08:00:00Z' })
+    return id
+  }
+  function kvasenie(id: string, extra: Record<string, unknown> = {}) {
+    return presunSarzu(context.db, kontextPresunu, {
+      type: TypZasahu.KVASENIE, zdrojovaSarzaId: id, cielovaFaza: FazaSarze.KVASENIE,
+      ciele: [{ nadoba: nadoba('Kvasenie A'), volume: 60 }, { nadoba: nadoba('Kvasenie B'), volume: 40 }],
+      ...extra,
+    })
+  }
+  it('prevezme poslednú cukornatosť podľa dátumu do všetkých nových šarží a zachová ju pri ďalšom meraní', async () => {
+    const source = await pripravZdroj()
+    const result = kvasenie(source)
+    for (const id of result.vytvoreneSarzeIds) {
+      await vytvorMeranie(context.db, 'pivnica-1', id, { type: TypMerania.CUKORNATOST, value: 5 })
+      const detail = await nacitajSarzu(context.db, 'pivnica-1', id)
+      expect(detail.pociatocnaCukornatost).toBe(18.5)
+      expect(detail.posledneMerania.CUKORNATOST?.value).toBe(5)
+    }
+    expect((await nacitajSarzu(context.db, 'pivnica-1', source)).pociatocnaCukornatost).toBeNull()
+  })
+  it.each([0, 21.5])('uloží manuálnu hodnotu %s namiesto posledného merania', async (value) => {
+    const result = kvasenie(await pripravZdroj(), { pociatocnaCukornatost: value })
+    expect((await nacitajSarzu(context.db, 'pivnica-1', result.vytvoreneSarzeIds[0]!)).pociatocnaCukornatost).toBe(value)
+  })
+  it('bez merania ponechá hodnotu nevyplnenú', async () => {
+    const result = kvasenie(vlozSarzu(FazaSarze.ODKALENIE))
+    expect((await nacitajSarzu(context.db, 'pivnica-1', result.vytvoreneSarzeIds[0]!)).pociatocnaCukornatost).toBeNull()
+  })
+  it.each([-1, 'abc', true])('odmietne neplatnú hodnotu %s bez zmeny šarže', (value) => {
+    const id = vlozSarzu(FazaSarze.ODKALENIE)
+    expect(() => kvasenie(id, { pociatocnaCukornatost: value })).toThrow()
+    expect(context.db.select().from(sarze).where(eq(sarze.id, id)).get()?.status).toBe(StavSarze.AKTIVNA)
+    expect(context.db.select().from(presuny).all()).toHaveLength(0)
+  })
+})
+
+
+describe('presun do pôvodnej nádoby', () => {
+  it.each(['Zdroj', 'zdroj'])('umožní pokračovanie v nádobe %s a uzavrie pôvodnú šaržu', (name) => {
+    const sourceId = vlozSarzu(FazaSarze.ODKALENIE)
+    const result = presunSarzu(context.db, kontextPresunu, {
+      type: TypZasahu.KVASENIE,
+      zdrojovaSarzaId: sourceId,
+      cielovaFaza: FazaSarze.KVASENIE,
+      ciele: [{ nadoba: nadoba(name), volume: 100 }],
+    })
+    expect(context.db.select().from(sarze).where(eq(sarze.id, sourceId)).get()?.status).toBe(StavSarze.UZAVRETA)
+    expect(context.db.select().from(sarze).where(eq(sarze.id, result.vytvoreneSarzeIds[0]!)).get()).toMatchObject({
+      nazovNadoby: name, status: StavSarze.AKTIVNA, rodicovskaSarzaId: sourceId, volume: 100,
+    })
+  })
+
+  it('pri rozdelení povolí pôvodnú nádobu, ale odmietne nádobu obsadenú inou šaržou', () => {
+    const sourceId = vlozSarzu(FazaSarze.ODKALENIE)
+    vlozSarzu(FazaSarze.ZRENIE, 50, 'Obsadená')
+    const body = {
+      zdrojovaSarzaId: sourceId,
+      cielovaFaza: FazaSarze.KVASENIE,
+      ciele: [{ nadoba: nadoba('Zdroj'), volume: 60 }, { nadoba: nadoba('obsadená'), volume: 40 }],
+    }
+    expect(() => presunSarzu(context.db, kontextPresunu, body)).toThrow('už obsahuje aktívnu šaržu')
+    expect(context.db.select().from(sarze).where(eq(sarze.id, sourceId)).get()?.status).toBe(StavSarze.AKTIVNA)
+    expect(context.db.select().from(presuny).all()).toHaveLength(0)
+    body.ciele[1]!.nadoba.name = 'Voľná'
+    expect(presunSarzu(context.db, kontextPresunu, body).vytvoreneSarzeIds).toHaveLength(2)
+  })
+})

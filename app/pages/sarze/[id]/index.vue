@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  FazaSarze,
   StavSarze,
   TypZasahu,
   TypMerania,
@@ -52,6 +53,12 @@ function openZasah() {
 function openZasahForm(type: TypZasahu) {
   showZasah.value = false
   return navigateTo('/sarze/' + id.value + '/zasahy/' + type.toLowerCase() + '/new')
+}
+
+function formatDatumCas(value: string) {
+  return new Date(value).toLocaleString('sk-SK', {
+    year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit',
+  })
 }
 
 function formatHodnotaMerania(value: number | null | undefined) {
@@ -151,10 +158,17 @@ async function forceDelete() {
             <div><p class="eyebrow gold">Kontrola hodnôt</p><h2>Posledné merania</h2></div>
             <button v-if="sarza.status === StavSarze.AKTIVNA" class="text-button" @click="openMeranie">+ Pridať</button>
           </div>
+          <div v-if="sarza.faza === FazaSarze.KVASENIE" class="data-row">
+            <div>
+              <strong>Počiatočná cukornatosť</strong>
+              <small>{{ formatDatumCas(sarza.openedAt) }}</small>
+            </div>
+            <b>{{ formatHodnotaMerania(sarza.pociatocnaCukornatost) }} <small>°NM</small></b>
+          </div>
           <div v-for="option in moznostiMerani" :key="option.value" class="data-row">
             <div>
               <strong>{{ option.label }}</strong>
-              <small>{{ sarza.posledneMerania[option.value]?.zmeraneAt ? new Date(sarza.posledneMerania[option.value]!.zmeraneAt).toLocaleString('sk-SK') : 'Zatiaľ bez merania' }}</small>
+              <small>{{ sarza.posledneMerania[option.value]?.zmeraneAt ? formatDatumCas(sarza.posledneMerania[option.value]!.zmeraneAt) : 'Zatiaľ bez merania' }}</small>
             </div>
             <b>{{ formatHodnotaMerania(sarza.posledneMerania[option.value]?.value) }} <small>{{ sarza.posledneMerania[option.value]?.unit || option.unit }}</small></b>
           </div>
@@ -168,7 +182,7 @@ async function forceDelete() {
           <div v-for="item in sarza.zasahy" :key="item.id" class="data-row">
             <div>
               <strong>{{ nazvyZasahov[item.type] }}</strong>
-              <small>{{ new Date(item.vykonaneAt).toLocaleString('sk-SK') }}</small>
+              <small>{{ formatDatumCas(item.vykonaneAt) }}</small>
               <small v-if="item.notes">{{ item.notes }}</small>
             </div>
             <AppIcon :name="ikonyZasahov[item.type]" :size="18" />

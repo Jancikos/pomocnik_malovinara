@@ -63,6 +63,7 @@ export interface ZasahDto {
 }
 
 export interface DetailSarzeDto extends PrehladSarzeDto {
+  pociatocnaCukornatost: number | null
   merania: MeranieDto[]
   zasahy: ZasahDto[]
   children: Array<{ id: string; faza: FazaSarze; nazovNadoby: string; volume: number }>

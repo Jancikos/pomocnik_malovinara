@@ -1,0 +1,1 @@
+ALTER TABLE `sarze` ADD `pociatocna_cukornatost` real;

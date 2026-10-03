@@ -6,7 +6,9 @@ export default defineEventHandler((event) => withAuth(event, (_db, context) => (
     nickname: context.userNickname,
     email: context.userEmail,
   },
-  pivnica: { id: context.pivnicaId, name: context.nazovPivnice, role: context.role, logo: context.logo },
+  pivnica: { id: context.pivnicaId, name: context.nazovPivnice, role: context.role, logo: context.logo,
+    koeficientDosladzaniaMustu: context.koeficientDosladzaniaMustu,
+    koeficientDosladzaniaVody: context.koeficientDosladzaniaVody },
   pivnice: context.cellars,
   preferences: { defaultContainerLocation: context.defaultContainerLocation },
 })))

@@ -57,6 +57,13 @@
       "when": 1791006842149,
       "tag": "0007_allow_duplicate_container_names",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1791007545852,
+      "tag": "0008_cellar_sweetening_coefficients",
+      "breakpoints": true
     }
   ]
 }

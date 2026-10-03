@@ -18,9 +18,9 @@ const odporucaneKg = computed(() => {
   const initial = form.pociatocnaCukornatost
   const target = form.pozadovanaCukornatost
   if (typeof initial !== 'number' || typeof target !== 'number' || !Number.isFinite(initial) || !Number.isFinite(target) || initial < 0 || target < 0) return null
-  return Math.round(PrepocetCukru.potrebneKilogramy(props.sarza.volume, initial, target) * 100) / 100
+  return Math.round(PrepocetCukru.potrebneKilogramy(props.sarza.volume, initial, target, props.sarza.pivnica.koeficientDosladzaniaMustu) * 100) / 100
 })
-watch([() => form.pociatocnaCukornatost, () => form.pozadovanaCukornatost, () => props.sarza.volume], () => {
+watch([() => form.pociatocnaCukornatost, () => form.pozadovanaCukornatost, () => props.sarza.volume, () => props.sarza.pivnica.koeficientDosladzaniaMustu], () => {
   form.pridanyCukorKg = odporucaneKg.value ?? ''
 })
 
@@ -65,6 +65,7 @@ async function save() {
     <p v-if="odporucaneKg !== null" class="form-hint span-2">
       Na zvýšenie cukornatosti objemu {{ sarza.volume.toLocaleString('sk-SK') }} l o {{ Math.max(0, Number(form.pozadovanaCukornatost) - Number(form.pociatocnaCukornatost)).toLocaleString('sk-SK') }} °NM je potrebné pridať {{ odporucaneKg.toLocaleString('sk-SK', { maximumFractionDigits: 2 }) }} kg cukru.
     </p>
+    <p class="form-hint span-2">Koeficient dosládzania muštu tejto pivnice: {{ sarza.pivnica.koeficientDosladzaniaMustu.toLocaleString('sk-SK', { maximumFractionDigits: 10 }) }}.</p>
     <label class="span-2">
       Čas
       <input v-model="form.vykonaneAt" type="datetime-local" required>

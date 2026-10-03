@@ -52,6 +52,23 @@ function vlozSarzu(
 
 const kontextPresunu = { pivnicaId: 'pivnica-1', userId: 'user-1' }
 
+describe('koeficienty dosládzania šarže', () => {
+  it('načíta aktuálne koeficienty pivnice danej šarže a izoluje inú pivnicu', async () => {
+    const id = vlozSarzu(FazaSarze.MUST)
+    expect((await nacitajSarzu(context.db, 'pivnica-1', id)).pivnica).toEqual({
+      id: 'pivnica-1', koeficientDosladzaniaMustu: 1.06, koeficientDosladzaniaVody: 1,
+    })
+    context.db.insert(pivnice).values({ id: 'pivnica-2', name: 'Iná pivnica', koeficientDosladzaniaMustu: 1.4, koeficientDosladzaniaVody: 1.3 }).run()
+    context.db.insert(vina).values({ id: 'vino-2', pivnicaId: 'pivnica-2', name: 'Iné víno', code: 'IV', rocnik: 2026, color: FarbaVina.BIELE }).run()
+    const druha = await vytvorSarzu(context.db, 'pivnica-2', { vinoId: 'vino-2', faza: FazaSarze.MUST, volume: 100, nadoba: nadoba('Iná nádoba') })
+    expect(druha.pivnica).toEqual({ id: 'pivnica-2', koeficientDosladzaniaMustu: 1.4, koeficientDosladzaniaVody: 1.3 })
+    context.db.update(pivnice).set({ koeficientDosladzaniaMustu: 1.25, koeficientDosladzaniaVody: 1.15 }).where(eq(pivnice.id, 'pivnica-1')).run()
+    expect((await nacitajSarzu(context.db, 'pivnica-1', id)).pivnica).toEqual({ id: 'pivnica-1', koeficientDosladzaniaMustu: 1.25, koeficientDosladzaniaVody: 1.15 })
+    expect((await nacitajSarzu(context.db, 'pivnica-2', druha.id)).pivnica).toEqual(druha.pivnica)
+    await expect(nacitajSarzu(context.db, 'pivnica-2', id)).rejects.toThrow('nenašla')
+  })
+})
+
 describe('vino services', () => {
   it('kontroluje jedinečnosť kódu až v kombinácii s ročníkom', async () => {
     await expect(vytvorVino(context.db, 'pivnica-1', {

@@ -12,7 +12,9 @@ const tokenHash = (token: string) => createHash('sha256').update(token).digest('
 
 export function listCellars(db: Database, userId: string) {
   return db.select({ id: pivnice.id, name: pivnice.name, logo: pivnice.logo, role: clenoviaPivnice.role,
-    defaultContainerLocation: pivnice.defaultContainerLocation })
+    defaultContainerLocation: pivnice.defaultContainerLocation,
+    koeficientDosladzaniaMustu: pivnice.koeficientDosladzaniaMustu,
+    koeficientDosladzaniaVody: pivnice.koeficientDosladzaniaVody })
     .from(clenoviaPivnice).innerJoin(pivnice, eq(clenoviaPivnice.pivnicaId, pivnice.id))
     .where(eq(clenoviaPivnice.userId, userId)).orderBy(clenoviaPivnice.createdAt, pivnice.id).all()
 }
@@ -39,6 +41,8 @@ export async function requireAuth(event: H3Event, db: Database) {
   if (row.activePivnicaId !== cellar.id) selectCellar(event, db, row.userId, cellar.id)
   return { userId: row.userId, userNickname: row.userNickname, userEmail: row.userEmail,
     defaultContainerLocation: cellar.defaultContainerLocation, pivnicaId: cellar.id,
+    koeficientDosladzaniaMustu: cellar.koeficientDosladzaniaMustu,
+    koeficientDosladzaniaVody: cellar.koeficientDosladzaniaVody,
     nazovPivnice: cellar.name, role: cellar.role, logo: cellar.logo, cellars }
 }
 

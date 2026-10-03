@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CELLAR_LOGO_MAX_BYTES } from '~~/shared/constants/cellar-logo'
+import { DEFAULT_KOEFICIENT_MUST, DEFAULT_KOEFICIENT_VODA } from '~~/shared/constants/dosladzanie'
 
 const cellarFetch = useCellarFetch()
 const auth = useAuth()
@@ -10,7 +11,9 @@ const developmentUrl = ref('')
 const logoFileName = ref('')
 const readingLogo = ref(false)
 const form = reactive({ name: auth.current.value?.pivnica.name ?? '', logo: auth.current.value?.pivnica.logo ?? null as string | null,
-  defaultContainerLocation: auth.current.value?.preferences.defaultContainerLocation ?? '' })
+  defaultContainerLocation: auth.current.value?.preferences.defaultContainerLocation ?? '',
+  koeficientDosladzaniaMustu: (auth.current.value?.pivnica.koeficientDosladzaniaMustu ?? DEFAULT_KOEFICIENT_MUST) as number | string,
+  koeficientDosladzaniaVody: (auth.current.value?.pivnica.koeficientDosladzaniaVody ?? DEFAULT_KOEFICIENT_VODA) as number | string })
 const invite = reactive({ email: '', role: 'VIEWER' })
 const { data: sharing, refresh } = await useFetch('/api/cellars/sharing', { immediate: auth.isOwner.value })
 async function run(action: () => Promise<void>) {
@@ -26,7 +29,7 @@ async function save() {
   await run(async () => {
     await cellarFetch('/api/pivnica', { method: 'PUT', body: form })
     await auth.load()
-    await refreshNuxtData('prehlad-pivnice')
+    await refreshNuxtData()
     message.value = 'Nastavenia pivnice boli uložené.'
   })
 }
@@ -75,12 +78,16 @@ async function changeAccess(body: Record<string, unknown>) {
 <template>
   <section class="narrow-page account-page cellar-settings">
     <NuxtLink class="back-link" to="/pivnica">← Späť na pivnicu</NuxtLink>
-    <PageHeading eyebrow="Pivnica" title="Nastavenia pivnice" description="Údaje pivnice, logo a prístup ďalších používateľov." />
+    <PageHeading eyebrow="Pivnica" title="Nastavenia pivnice" description="Údaje pivnice, dosládzanie, logo a prístup ďalších používateľov." />
     <p v-if="errorMessage" class="form-error" role="alert">{{ errorMessage }}</p>
     <p v-if="message" class="form-success" role="status">{{ message }}</p>
     <form class="panel form-grid elevated-form" @submit.prevent="save">
       <label class="span-2">Názov pivnice<input v-model="form.name" required :disabled="!auth.canEdit.value"></label>
       <label class="span-2">Predvolené umiestnenie sudov a nádob<input v-model="form.defaultContainerLocation" :disabled="!auth.canEdit.value" placeholder="Napr. Hlavná miestnosť"><span class="form-hint">Predvyplní sa pri novej šarži a pri presune do novej nádoby.</span></label>
+      <h2 class="span-2">Dosládzanie</h2>
+      <KoeficientDosladzaniaField v-model="form.koeficientDosladzaniaMustu" label="Koeficient dosládzania muštu" :default-value="DEFAULT_KOEFICIENT_MUST" :disabled="!auth.canEdit.value" />
+      <KoeficientDosladzaniaField v-model="form.koeficientDosladzaniaVody" label="Koeficient dosládzania vody" :default-value="DEFAULT_KOEFICIENT_VODA" :disabled="!auth.canEdit.value" />
+      <p class="form-hint span-2">Koeficient určuje kilogramy cukru potrebné na zvýšenie cukornatosti 100 l o 1 °NM. Použije sa pri výpočtoch pre šarže v tejto pivnici. Už uložené zásahy sa nemenia.</p>
       <div class="span-2 logo-field">
         <label v-if="auth.canEdit.value" for="cellar-logo-file">Logo pivnice</label>
         <label v-if="auth.canEdit.value" class="logo-upload" :class="{ 'is-disabled': readingLogo || saving }" :aria-busy="readingLogo">

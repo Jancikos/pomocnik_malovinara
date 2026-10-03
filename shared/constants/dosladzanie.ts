@@ -1,0 +1,2 @@
+export const DEFAULT_KOEFICIENT_MUST = 1.06
+export const DEFAULT_KOEFICIENT_VODA = 1.00

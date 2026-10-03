@@ -67,7 +67,13 @@ export interface ZasahDto {
   createdAt: string
 }
 
+export interface KoeficientyDosladzaniaDto {
+  koeficientDosladzaniaMustu: number
+  koeficientDosladzaniaVody: number
+}
+
 export interface DetailSarzeDto extends PrehladSarzeDto {
+  pivnica: KoeficientyDosladzaniaDto & { id: string }
   pociatocnaCukornatost: number | null
   merania: MeranieDto[]
   zasahy: ZasahDto[]

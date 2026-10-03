@@ -174,7 +174,7 @@ describe('existing cellar migration', () => {
         INSERT INTO pivnica_members (pivnica_id, user_id, role) VALUES ('legacy', 'legacy', 'OWNER');
       `)
       legacy.sqlite.exec(readFileSync(resolve(folder, '0006_eminent_agent_brand.sql'), 'utf8'))
-      expect(legacy.db.select().from(pivnice).get()).toMatchObject({ name: 'Stará pivnica', defaultContainerLocation: 'Stará miestnosť', logo: null })
+      expect(legacy.db.select({ name: pivnice.name, defaultContainerLocation: pivnice.defaultContainerLocation, logo: pivnice.logo }).from(pivnice).get()).toMatchObject({ name: 'Stará pivnica', defaultContainerLocation: 'Stará miestnosť', logo: null })
       expect(legacy.db.select().from(clenoviaPivnice).get()?.role).toBe('OWNER')
     } finally { legacy.sqlite.close() }
   })
@@ -186,6 +186,32 @@ describe('sharing API endpoints', () => {
     vi.stubGlobal('defineEventHandler', h3.defineEventHandler)
     vi.stubGlobal('readBody', vi.fn().mockResolvedValue(body))
   }
+  it('persists separate coefficients per cellar and returns them after selection', async () => {
+    join('MEMBER')
+    await globals({ name: 'Zdieľaná', logo: null, koeficientDosladzaniaMustu: '1,15', koeficientDosladzaniaVody: 1.25 })
+    const settings = (await import('../../api/pivnica/index.put')).default
+    await settings(event('/api/pivnica', 'PUT', 'shared'))
+    const me = (await import('../../api/auth/me.get')).default
+    expect((await me(event('/api/auth/me'))).pivnica).toMatchObject({ id: 'shared', koeficientDosladzaniaMustu: 1.15, koeficientDosladzaniaVody: 1.25 })
+    selectCellar(event(), context.db, 'guest', 'own')
+    expect((await me(event('/api/auth/me'))).pivnica).toMatchObject({ id: 'own', koeficientDosladzaniaMustu: 1.06, koeficientDosladzaniaVody: 1 })
+    selectCellar(event(), context.db, 'guest', 'shared')
+    await globals({ name: 'Premenovaná', logo: null })
+    await settings(event('/api/pivnica', 'PUT'))
+    expect((await me(event('/api/auth/me'))).pivnica).toMatchObject({ koeficientDosladzaniaMustu: 1.15, koeficientDosladzaniaVody: 1.25 })
+    await globals({ name: 'Premenovaná', logo: null, koeficientDosladzaniaMustu: 1.06, koeficientDosladzaniaVody: '1,00' })
+    await settings(event('/api/pivnica', 'PUT'))
+    expect((await me(event('/api/auth/me'))).pivnica).toMatchObject({ koeficientDosladzaniaMustu: 1.06, koeficientDosladzaniaVody: 1 })
+  })
+  it.each([0, -1, '', 'abc', 'Infinity', null, true, [], {}, NaN, Infinity])('rejects invalid coefficients %j without partially updating settings', async (value) => {
+    await globals({})
+    const settings = (await import('../../api/pivnica/index.put')).default
+    for (const field of ['koeficientDosladzaniaMustu', 'koeficientDosladzaniaVody']) {
+      await globals({ name: 'Neplatná zmena', logo: null, koeficientDosladzaniaMustu: 1.25, koeficientDosladzaniaVody: 1.25, [field]: value })
+      await expect(settings(event('/api/pivnica', 'PUT'))).rejects.toMatchObject({ statusCode: 400, message: expect.stringContaining('Koeficient dosládzania') })
+      expect(context.db.select().from(pivnice).where(eq(pivnice.id, 'own')).get()).toMatchObject({ name: 'Vlastná', koeficientDosladzaniaMustu: 1.06, koeficientDosladzaniaVody: 1 })
+    }
+  })
   it('lets an owner downgrade and revoke a member; blocks changes to owners', async () => {
     join('MEMBER')
     context.db.update(sessions).set({ userId: 'owner' }).run()

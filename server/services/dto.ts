@@ -32,9 +32,10 @@ export function prehladSarzeDto(row: any, latest: Partial<Record<TypMerania, any
   }
 }
 
-export function detailSarzeDto(summary: PrehladSarzeDto, merania: MeranieDto[], zasahy: any[], children: any[], pociatocnaCukornatost: number | null = null): DetailSarzeDto {
+export function detailSarzeDto(summary: PrehladSarzeDto, merania: MeranieDto[], zasahy: any[], children: any[], pivnica: DetailSarzeDto['pivnica'], pociatocnaCukornatost: number | null = null): DetailSarzeDto {
   return {
     ...summary,
+    pivnica,
     pociatocnaCukornatost,
     merania,
     zasahy: zasahy.map((item) => ({ id: item.id, sarzaId: item.sarzaId, type: item.type, pridanaVodaLitrov: item.pridanaVodaLitrov, objemPredZasahom: item.objemPredZasahom, pociatocnaCukornatost: item.pociatocnaCukornatost, pozadovanaCukornatost: item.pozadovanaCukornatost, pridanyCukorKg: item.pridanyCukorKg, vykonaneAt: item.vykonaneAt.toISOString(), notes: item.notes, createdAt: item.createdAt.toISOString() })),

@@ -2,7 +2,7 @@ import { and, eq } from 'drizzle-orm'
 import { FazaSarze, StavSarze } from '../../shared/domain'
 import { parseDecimal } from '../../shared/utils/number'
 import type { Database } from '../database/client'
-import { sarze, zasahy, merania, cielePresunu, presuny, vina } from '../database/schema'
+import { sarze, zasahy, merania, cielePresunu, presuny, vina, pivnice } from '../database/schema'
 import { najdiSarzu, najdiRiadokSarze, zoznamNaslednychSarzi, zoznamZasahovSarze, zoznamMeraniSarze, zoznamRiadkovSarzi } from '../repositories/sarza.repository'
 import { posledneMeraniaPodlaTypu } from '../repositories/meranie.repository'
 import { DomainError, notFound } from '../utils/errors'
@@ -20,6 +20,12 @@ export async function nacitajSarze(db: Database, pivnicaId: string, status?: Sta
 export async function nacitajSarzu(db: Database, pivnicaId: string, id: string) {
   const row = await najdiRiadokSarze(db, pivnicaId, id)
   if (!row) notFound('Šarža sa nenašla.')
+  const pivnica = db.select({
+    id: pivnice.id,
+    koeficientDosladzaniaMustu: pivnice.koeficientDosladzaniaMustu,
+    koeficientDosladzaniaVody: pivnice.koeficientDosladzaniaVody,
+  }).from(pivnice).where(eq(pivnice.id, row.sarza.pivnicaId)).get()
+  if (!pivnica) notFound('Pivnica sa nenašla.')
   const [riadkyMerani, riadkyZasahov, children, latest] = await Promise.all([
     zoznamMeraniSarze(db, id),
     zoznamZasahovSarze(db, id),
@@ -31,6 +37,7 @@ export async function nacitajSarzu(db: Database, pivnicaId: string, id: string) 
     riadkyMerani.map(meranieDto),
     riadkyZasahov,
     children,
+    pivnica,
     row.sarza.faza === FazaSarze.KVASENIE ? row.sarza.pociatocnaCukornatost : null,
   )
 }

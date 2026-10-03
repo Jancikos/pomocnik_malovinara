@@ -1,6 +1,8 @@
+import type { KoeficientyDosladzaniaDto } from '~~/shared/types/api'
+
 export interface AuthState {
   user: { id: string; nickname: string; email: string }
-  pivnica: { id: string; name: string; logo: string | null; role: 'OWNER' | 'MEMBER' | 'VIEWER' }
+  pivnica: KoeficientyDosladzaniaDto & { id: string; name: string; logo: string | null; role: 'OWNER' | 'MEMBER' | 'VIEWER' }
   pivnice: Array<{ id: string; name: string; logo: string | null; role: 'OWNER' | 'MEMBER' | 'VIEWER' }>
   preferences: { defaultContainerLocation: string }
 }

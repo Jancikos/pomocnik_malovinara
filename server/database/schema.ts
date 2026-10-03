@@ -1,4 +1,5 @@
 import { sql } from 'drizzle-orm'
+import { DEFAULT_KOEFICIENT_MUST, DEFAULT_KOEFICIENT_VODA } from '../../shared/constants/dosladzanie'
 import { index, integer, primaryKey, real, sqliteTable, text, uniqueIndex, type AnySQLiteColumn } from 'drizzle-orm/sqlite-core'
 import type { FazaSarze, StavSarze, TypZasahu, TypMerania, TypNadoby, FarbaVina } from '../../shared/domain'
 
@@ -28,6 +29,8 @@ export const pivnice = sqliteTable('pivnice', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   logo: text('logo'),
+  koeficientDosladzaniaMustu: real('koeficient_dosladzania_mustu').notNull().default(DEFAULT_KOEFICIENT_MUST),
+  koeficientDosladzaniaVody: real('koeficient_dosladzania_vody').notNull().default(DEFAULT_KOEFICIENT_VODA),
   defaultContainerLocation: text('default_container_location').notNull().default(''),
   ...timestamps,
 })

@@ -18,9 +18,9 @@ const odporucaneKg = computed(() => {
   const initial = form.pridanaVodaLitrov
   const target = form.pozadovanaCukornatost
   if (typeof initial !== 'number' || typeof target !== 'number' || !Number.isFinite(initial) || !Number.isFinite(target) || initial < 0 || target < 0) return null
-  return Math.round(PrepocetCukru.potrebneKilogramy(initial, 0, target) * 100) / 100
+  return Math.round(PrepocetCukru.potrebneKilogramy(initial, 0, target, props.sarza.pivnica.koeficientDosladzaniaVody) * 100) / 100
 })
-watch([() => form.pridanaVodaLitrov, () => form.pozadovanaCukornatost, () => props.sarza.volume], () => {
+watch([() => form.pridanaVodaLitrov, () => form.pozadovanaCukornatost, () => props.sarza.volume, () => props.sarza.pivnica.koeficientDosladzaniaVody], () => {
   form.pridanyCukorKg = odporucaneKg.value ?? ''
 })
 
@@ -66,6 +66,7 @@ async function save() {
       Doliatych {{ Number(form.pridanaVodaLitrov).toLocaleString('sk-SK') }} l vody doslaďte na {{ Number(form.pozadovanaCukornatost).toLocaleString('sk-SK') }} °NM. Je potrebné pridať {{ odporucaneKg.toLocaleString('sk-SK', { maximumFractionDigits: 2 }) }} kg cukru.
     </p>
     <p class="form-hint span-2">Cukornatosť je predvyplnená z posledného merania šarže; môžete ju upraviť. Objem šarže po doliatí: {{ (sarza.volume + Number(form.pridanaVodaLitrov || 0)).toLocaleString('sk-SK') }} l / {{ sarza.nadoba.capacity.toLocaleString('sk-SK') }} l.</p>
+    <p class="form-hint span-2">Koeficient dosládzania vody tejto pivnice: {{ sarza.pivnica.koeficientDosladzaniaVody.toLocaleString('sk-SK', { maximumFractionDigits: 10 }) }}.</p>
     <label class="span-2">
       Čas
       <input v-model="form.vykonaneAt" type="datetime-local" required>

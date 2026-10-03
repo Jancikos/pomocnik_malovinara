@@ -9,7 +9,7 @@ import { uzavriSarzu, vytvorSarzu, vynutVymazanieSarze, nacitajSarzu, upravZakla
 import { vytvorZasah } from '../zasah.service'
 import { vytvorMeranie } from '../meranie.service'
 import { presunSarzu } from '../presun.service'
-import { vytvorVino, upravVino } from '../vino.service'
+import { vytvorVino, upravVino, vynutVymazanieVina } from '../vino.service'
 
 let context: DatabaseContext
 
@@ -116,6 +116,111 @@ describe('vino services', () => {
       color: FarbaVina.BIELE,
       vstupneSuroviny: [],
     })).toThrow('kódom a ročníkom')
+  })
+})
+
+describe('vymazanie vína', () => {
+  function snapshot() {
+    return {
+      vina: context.db.select().from(vina).all(),
+      materials: context.db.select().from(vstupneSurovinyVina).all(),
+      sarze: context.db.select().from(sarze).all(),
+      merania: context.db.select().from(merania).all(),
+      zasahy: context.db.select().from(zasahy).all(),
+      presuny: context.db.select().from(presuny).all(),
+      ciele: context.db.select().from(cielePresunu).all(),
+    }
+  }
+
+  async function wineTree() {
+    context.db.insert(vstupneSurovinyVina).values({ id: 'material', vinoId: 'vino-1', odrodaHrozna: 'Irsai', percentage: 100 }).run()
+    const { id: root } = await vytvorSarzu(context.db, 'pivnica-1', { vinoId: 'vino-1', faza: FazaSarze.MUST, nadoba: nadoba('Zdroj'), volume: 100 })
+    const split = presunSarzu(context.db, kontextPresunu, {
+      zdrojovaSarzaId: root, cielovaFaza: FazaSarze.ODKALENIE,
+      ciele: [{ nadoba: nadoba('A'), volume: 60 }, { nadoba: nadoba('B'), volume: 40 }],
+    })
+    const next = presunSarzu(context.db, kontextPresunu, {
+      zdrojovaSarzaId: split.vytvoreneSarzeIds[0]!, cielovaFaza: FazaSarze.KVASENIE,
+      ciele: [{ nadoba: nadoba('C'), volume: 60 }],
+    })
+    const leaf = next.vytvoreneSarzeIds[0]!
+    await vytvorMeranie(context.db, 'pivnica-1', leaf, { type: TypMerania.PH, value: 3.2 })
+    await vytvorZasah(context.db, 'pivnica-1', leaf, { type: TypZasahu.SIRENIE, sulfurMg: 25 })
+    return { root, leaf, sibling: split.vytvoreneSarzeIds[1]! }
+  }
+
+  it('vyžaduje presné potvrdenie a chráni víno inej pivnice', async () => {
+    await wineTree()
+    const before = snapshot()
+    for (const confirmation of [undefined, '', 'delete', 'force delete', 'FORCE DELETE ']) {
+      await expect(vynutVymazanieVina(context.db, 'pivnica-1', 'vino-1', confirmation)).rejects.toThrow('FORCE DELETE')
+    }
+    await expect(vynutVymazanieVina(context.db, 'pivnica-2', 'vino-1', 'FORCE DELETE')).rejects.toThrow('nenašlo')
+    await expect(vynutVymazanieVina(context.db, 'pivnica-1', 'missing', 'FORCE DELETE')).rejects.toThrow('nenašlo')
+    expect(snapshot()).toEqual(before)
+  })
+
+  it('vymaže aj víno bez šarží so vstupnými surovinami', async () => {
+    context.db.insert(vstupneSurovinyVina).values({ id: 'material', vinoId: 'vino-1', odrodaHrozna: 'Irsai', percentage: 100 }).run()
+    await expect(vynutVymazanieVina(context.db, 'pivnica-1', 'vino-1', 'FORCE DELETE')).resolves.toEqual({ deleted: true })
+    expect(context.db.select().from(vina).all()).toEqual([])
+    expect(context.db.select().from(vstupneSurovinyVina).all()).toEqual([])
+    expect(context.sqlite.pragma('foreign_key_check')).toEqual([])
+  })
+
+  it('vymaže všetky aktívne aj uzavreté šarže vína s celou históriou a zachová ostatné vína', async () => {
+    const other = await vytvorVino(context.db, 'pivnica-1', {
+      name: 'Rizling', code: 'RR', rocnik: 2026, color: FarbaVina.BIELE,
+      vstupneSuroviny: [{ odrodaHrozna: 'Rizling', percentage: 100 }],
+    })
+    const otherBatch = await vytvorSarzu(context.db, 'pivnica-1', { vinoId: other.id, faza: FazaSarze.MUST, nadoba: nadoba('Iné víno'), volume: 100 })
+    await vytvorMeranie(context.db, 'pivnica-1', otherBatch.id, { type: TypMerania.PH, value: 3.3 })
+    presunSarzu(context.db, kontextPresunu, {
+      zdrojovaSarzaId: otherBatch.id, cielovaFaza: FazaSarze.ODKALENIE,
+      ciele: [{ nadoba: nadoba('Iné víno pokračovanie'), volume: 100 }],
+    })
+    context.db.insert(pivnice).values({ id: 'pivnica-2', name: 'Druhá pivnica' }).run()
+    context.db.insert(vina).values({ id: 'vino-2', pivnicaId: 'pivnica-2', name: 'Irsai', code: 'IO', rocnik: 2026, color: FarbaVina.BIELE }).run()
+    await vytvorSarzu(context.db, 'pivnica-2', { vinoId: 'vino-2', faza: FazaSarze.MUST, nadoba: nadoba('Iná pivnica'), volume: 100 })
+    const before = snapshot()
+    before.vina = before.vina.filter((vino) => vino.id !== 'vino-1')
+    await wineTree()
+    vlozSarzu(FazaSarze.ZRENIE, 20, 'Samostatná šarža')
+    await expect(vynutVymazanieVina(context.db, 'pivnica-1', 'vino-1', 'FORCE DELETE')).resolves.toEqual({ deleted: true })
+    expect(snapshot()).toEqual(before)
+    expect(context.sqlite.pragma('foreign_key_check')).toEqual([])
+  })
+
+  it('pri chybe obnoví víno, všetky šarže, materiály aj históriu', async () => {
+    await wineTree()
+    const before = snapshot()
+    context.sqlite.exec("CREATE TRIGGER reject_wine_delete BEFORE DELETE ON vina BEGIN SELECT RAISE(ABORT, 'test failure'); END")
+    await expect(vynutVymazanieVina(context.db, 'pivnica-1', 'vino-1', 'FORCE DELETE')).rejects.toThrow('test failure')
+    expect(snapshot()).toEqual(before)
+    expect(context.sqlite.pragma('foreign_key_check')).toEqual([])
+  })
+
+  it('chráni následníkov preradených k inému vínu a pri ich vymazaní zachová pôvodné víno', async () => {
+    const { root, leaf } = await wineTree()
+    const other = await vytvorVino(context.db, 'pivnica-1', {
+      name: 'Rizling', code: 'RR', rocnik: 2026, color: FarbaVina.BIELE, vstupneSuroviny: [],
+    })
+    await upravZakladSarze(context.db, 'pivnica-1', leaf, {
+      vinoId: other.id, faza: FazaSarze.KVASENIE, nadoba: nadoba('C'), volume: 60,
+    })
+    const before = snapshot()
+    await expect(vynutVymazanieVina(context.db, 'pivnica-1', 'vino-1', 'FORCE DELETE')).rejects.toThrow('inému vínu')
+    expect(snapshot()).toEqual(before)
+    // Aj samotná väzba cez presun musí chrániť preradenú šaržu.
+    context.db.update(sarze).set({ rodicovskaSarzaId: null }).where(eq(sarze.id, leaf)).run()
+    await expect(vynutVymazanieVina(context.db, 'pivnica-1', 'vino-1', 'FORCE DELETE')).rejects.toThrow('inému vínu')
+    await vynutVymazanieVina(context.db, 'pivnica-1', other.id, 'FORCE DELETE')
+    expect(context.db.select().from(vina).all()).toHaveLength(1)
+    expect(context.db.select().from(sarze).all()).toHaveLength(3)
+    expect(context.db.select().from(presuny).all()).toHaveLength(2)
+    expect(context.db.select().from(cielePresunu).all()).toHaveLength(2)
+    expect((await nacitajSarzu(context.db, 'pivnica-1', root)).status).toBe(StavSarze.UZAVRETA)
+    expect(context.sqlite.pragma('foreign_key_check')).toEqual([])
   })
 })
 

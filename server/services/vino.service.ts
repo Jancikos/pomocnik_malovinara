@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto'
-import { and, eq, ne } from 'drizzle-orm'
+import { and, eq, inArray, ne, notInArray, or } from 'drizzle-orm'
 import { FarbaVina } from '../../shared/domain'
 import { requiredText, parseDecimal } from '../../shared/utils/number'
 import type { Database } from '../database/client'
-import { vstupneSurovinyVina, vina } from '../database/schema'
+import { cielePresunu, merania, presuny, sarze, vstupneSurovinyVina, vina, zasahy } from '../database/schema'
 import { DomainError, notFound } from '../utils/errors'
 import { najdiVino, listSourceMaterials, zoznamVin } from '../repositories/vino.repository'
 
@@ -86,6 +86,34 @@ export function upravVino(db: Database, pivnicaId: string, id: string, body: Rec
     if (parsed.materials.length) tx.insert(vstupneSurovinyVina).values(parsed.materials.map((item) => ({ ...item, vinoId: id }))).run()
   })
   return nacitajVino(db, pivnicaId, id)
+}
+
+export async function vynutVymazanieVina(db: Database, pivnicaId: string, id: string, confirmation: unknown) {
+  if (confirmation !== 'FORCE DELETE') throw new DomainError('Pre vymazanie zadajte presne FORCE DELETE.')
+  db.transaction((tx) => {
+    const vino = tx.select({ id: vina.id }).from(vina).where(and(eq(vina.id, id), eq(vina.pivnicaId, pivnicaId))).get()
+    if (!vino) notFound('Víno sa nenašlo.')
+
+    const wineBatches = tx.select({ id: sarze.id }).from(sarze).where(and(eq(sarze.vinoId, id), eq(sarze.pivnicaId, pivnicaId)))
+    const wineTransfers = tx.select({ id: presuny.id }).from(presuny).where(inArray(presuny.zdrojovaSarzaId, wineBatches))
+    // Šarža sa dá preradiť k inému vínu; jej rodokmeň nesmieme potichu odstrániť.
+    const externalChild = tx.select({ id: sarze.id }).from(sarze)
+      .where(and(inArray(sarze.rodicovskaSarzaId, wineBatches), notInArray(sarze.id, wineBatches))).get()
+    const externalTransferChild = tx.select({ id: cielePresunu.id }).from(cielePresunu)
+      .where(and(inArray(cielePresunu.presunId, wineTransfers), notInArray(cielePresunu.vytvorenaSarzaId, wineBatches))).get()
+    if (externalChild || externalTransferChild) throw new DomainError('Najprv vymažte následníkov šarží tohto vína, ktorí patria k inému vínu.', 409)
+
+    tx.delete(merania).where(inArray(merania.sarzaId, wineBatches)).run()
+    tx.delete(zasahy).where(inArray(zasahy.sarzaId, wineBatches)).run()
+    tx.delete(cielePresunu).where(or(inArray(cielePresunu.vytvorenaSarzaId, wineBatches), inArray(cielePresunu.presunId, wineTransfers))).run()
+    tx.delete(presuny).where(inArray(presuny.zdrojovaSarzaId, wineBatches)).run()
+    // Uvoľníme vnútorné väzby, aby FK RESTRICT dovolil vymazať celý rodokmeň naraz.
+    tx.update(sarze).set({ rodicovskaSarzaId: null }).where(inArray(sarze.id, wineBatches)).run()
+    tx.delete(sarze).where(inArray(sarze.id, wineBatches)).run()
+    tx.delete(vstupneSurovinyVina).where(eq(vstupneSurovinyVina.vinoId, id)).run()
+    tx.delete(vina).where(and(eq(vina.id, id), eq(vina.pivnicaId, pivnicaId))).run()
+  })
+  return { deleted: true }
 }
 
 function optionalNumber(value: unknown, field: string): number | null {

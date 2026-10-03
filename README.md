@@ -150,13 +150,15 @@ Dôležité pravidlá:
 - Presuny obsahu medzi nádobami prebiehajú transakčne.
 - `DELETE /api/sarze/:id` vyžaduje potvrdenie `FORCE DELETE` a povolí vymazať iba šaržu bez následníkov. V jednej transakcii odstráni aj jej merania, zásahy a väzby na presuny. Rodokmeň možno postupne vymazať od listov ku koreňu; rodičovská šarža sa znovu neotvára a ostatné vetvy ostávajú zachované.
 
-Testy pokrývajú generovanie ID, snapshot nádoby v šarži, ochranu aktívneho názvu nádoby, append-only merania, latest-per-type, uzavretie, odkalenie, single aj multi-ciel stáčanie, objemovú bilanciu, kapacitu, lineage a ochranu force delete.
+- `DELETE /api/vina/:id` vyžaduje potvrdenie `FORCE DELETE`. V jednej transakcii odstráni víno, vstupné suroviny a všetky jeho aktívne aj uzavreté šarže vrátane meraní, zásahov a väzieb na presuny. Ak má niektorá šarža následníka preradeného k inému vínu, treba najprv vymazať tohto následníka. Ostatné vína ostávajú zachované.
+
+Testy pokrývajú generovanie ID, snapshot nádoby v šarži, ochranu aktívneho názvu nádoby, append-only merania, latest-per-type, uzavretie, odkalenie, single aj multi-ciel stáčanie, objemovú bilanciu, kapacitu, lineage a ochranu force delete vrátane kaskádového mazania vína a obnovy dát pri chybe.
 
 ## Hlavné API
 
 - `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
 - `GET /api/pivnica/prehlad`
-- `GET|POST /api/vina`, `GET /api/vina/:id`
+- `GET|POST /api/vina`, `GET|DELETE /api/vina/:id`
 - `GET|POST /api/sarze`, `GET|DELETE /api/sarze/:id`
 - `POST /api/sarze/:id/uzavriet`
 - `GET|POST /api/sarze/:id/merania`

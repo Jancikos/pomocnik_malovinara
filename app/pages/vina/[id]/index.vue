@@ -1,9 +1,33 @@
 <script setup lang="ts">
+const cellarFetch = useCellarFetch()
 const { canEdit } = useAuth()
 const route = useRoute()
 const { data: vino, error } = await useVino(() => String(route.params.id))
 const { data: sarze } = await useSarze()
 const vinoSarze = computed(() => sarze.value?.filter((sarza) => sarza.vinoId === vino.value?.id) ?? [])
+const actionError = ref('')
+const saving = ref(false)
+const showDanger = ref(false)
+const forceConfirmation = ref('')
+
+async function forceDelete() {
+  if (saving.value || forceConfirmation.value !== 'FORCE DELETE') return
+  saving.value = true
+  actionError.value = ''
+  try {
+    await cellarFetch(`/api/vina/${route.params.id}`, {
+      method: 'DELETE',
+      body: { confirmation: forceConfirmation.value },
+    })
+    await navigateTo('/vina')
+  }
+  catch (e) {
+    actionError.value = apiErrorMessage(e, 'Víno nemožno vymazať.')
+  }
+  finally {
+    saving.value = false
+  }
+}
 </script>
 
 <template>
@@ -31,6 +55,19 @@ const vinoSarze = computed(() => sarze.value?.filter((sarza) => sarza.vinoId ===
           </NuxtLink>
         </section>
       </div>
+      <section v-if="canEdit" class="danger-zone">
+        <div class="admin-actions">
+          <button class="danger-button" :disabled="saving" @click="showDanger = !showDanger">Nezvratné vymazanie</button>
+        </div>
+        <div v-if="showDanger" class="panel">
+          <p>Víno sa natrvalo vymaže spolu so vstupnými surovinami a všetkými svojimi šaržami vrátane ich meraní, zásahov a väzieb na presuny. Na potvrdenie zadajte <b>FORCE DELETE</b>.</p>
+          <div class="inline-form">
+            <input v-model="forceConfirmation" aria-label="Potvrdenie force delete" :disabled="saving">
+            <button class="danger-button" :disabled="saving || forceConfirmation !== 'FORCE DELETE'" @click="forceDelete">Natrvalo vymazať</button>
+          </div>
+          <p v-if="actionError" class="form-error">{{ actionError }}</p>
+        </div>
+      </section>
     </template>
   </section>
 </template>

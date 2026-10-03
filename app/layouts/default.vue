@@ -2,7 +2,8 @@
 const { version } = useAppConfig()
 const route = useRoute()
 const auth = useAuth()
-const { data: dataPivnice } = await usePivnica()
+const { data: dataPivnice, refresh: refreshPivnica } = await usePivnica()
+watch(() => route.path, () => refreshPivnica())
 
 const navigation = [
   { to: '/pivnica', label: 'Pivnica', subtitle: 'Aktívne šarže', icon: 'home' },

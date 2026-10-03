@@ -7,5 +7,5 @@ interface OdpovedPrehladuPivnice {
 }
 
 export function usePivnica() {
-  return useFetch<OdpovedPrehladuPivnice>('/api/pivnica/prehlad', { key: 'prehlad-pivnice' })
+  return useFreshFetch<OdpovedPrehladuPivnice>('/api/pivnica/prehlad', { key: 'prehlad-pivnice' })
 }

@@ -1,4 +1,4 @@
-import { and, eq, ne } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { FazaSarze, StavSarze } from '../../shared/domain'
 import { parseDecimal } from '../../shared/utils/number'
 import type { Database } from '../database/client'
@@ -47,16 +47,6 @@ function parseZakladSarzeInput(body: Record<string, unknown>) {
   return { vinoId, faza, volume, nadoba, openedAt }
 }
 
-function assertNadobaJeVolna(db: Database, pivnicaId: string, nazovNadoby: string, excludeId?: string) {
-  const query = excludeId
-    ? and(eq(sarze.pivnicaId, pivnicaId), eq(sarze.status, StavSarze.AKTIVNA), ne(sarze.id, excludeId))
-    : and(eq(sarze.pivnicaId, pivnicaId), eq(sarze.status, StavSarze.AKTIVNA))
-  const occupied = db.select({ name: sarze.nazovNadoby }).from(sarze)
-    .where(query).all()
-    .some((item) => item.name.localeCompare(nazovNadoby, 'sk', { sensitivity: 'base' }) === 0)
-  if (occupied) throw new DomainError('Nádoba s týmto názvom už obsahuje aktívnu šaržu.', 409)
-}
-
 export function vytvorSarzu(db: Database, pivnicaId: string, body: Record<string, unknown>) {
   const parsed = parseZakladSarzeInput(body)
 
@@ -64,8 +54,6 @@ export function vytvorSarzu(db: Database, pivnicaId: string, body: Record<string
   db.transaction((tx) => {
     const vino = tx.select().from(vina).where(and(eq(vina.id, parsed.vinoId), eq(vina.pivnicaId, pivnicaId))).get()
     if (!vino) notFound('Víno sa nenašlo.')
-
-    assertNadobaJeVolna(tx as unknown as Database, pivnicaId, parsed.nadoba.nazovNadoby)
 
     id = dalsieIdSarzi(tx as unknown as Database, { pivnicaId, year: vino.rocnik, kodVina: vino.code, faza: parsed.faza })[0]!
     tx.insert(sarze).values({
@@ -88,7 +76,6 @@ export function upravZakladSarze(db: Database, pivnicaId: string, id: string, bo
   const parsed = parseZakladSarzeInput(body)
   const vino = db.select({ id: vina.id }).from(vina).where(and(eq(vina.id, parsed.vinoId), eq(vina.pivnicaId, pivnicaId))).get()
   if (!vino) notFound('Víno sa nenašlo.')
-  if (existing.status === StavSarze.AKTIVNA) assertNadobaJeVolna(db, pivnicaId, parsed.nadoba.nazovNadoby, id)
 
   db.update(sarze).set({
     vinoId: parsed.vinoId,

@@ -142,7 +142,7 @@ Dôležité pravidlá:
 
 - Pri vytvorení každej šarže sa povinne zadáva názov, typ a kapacita nádoby; umiestnenie je voliteľné.
 - Počiatočnú fázu šarže používateľ vyberá manuálne už pri jej vytvorení.
-- Rovnaký názov nádoby môže mať v pivnici najviac jedna aktívna šarža.
+- Rovnaký názov nádoby môže mať viacero aktívnych šarží, aj pri rozdelení do viacerých cieľov presunu. Šarže sa rozlišujú podľa svojho ID.
 - Merania sú append-only; oprava alebo nová hodnota vytvorí nový záznam.
 - Ľubovoľný podporovaný typ merania alebo zásahu možno zaznamenať v ktorejkoľvek fáze aktívnej šarže.
 - API vie vrátiť poslednú hodnotu každého typu merania.
@@ -152,7 +152,7 @@ Dôležité pravidlá:
 
 - `DELETE /api/vina/:id` vyžaduje potvrdenie `FORCE DELETE`. V jednej transakcii odstráni víno, vstupné suroviny a všetky jeho aktívne aj uzavreté šarže vrátane meraní, zásahov a väzieb na presuny. Ak má niektorá šarža následníka preradeného k inému vínu, treba najprv vymazať tohto následníka. Ostatné vína ostávajú zachované.
 
-Testy pokrývajú generovanie ID, snapshot nádoby v šarži, ochranu aktívneho názvu nádoby, append-only merania, latest-per-type, uzavretie, odkalenie, single aj multi-ciel stáčanie, objemovú bilanciu, kapacitu, lineage a ochranu force delete vrátane kaskádového mazania vína a obnovy dát pri chybe.
+Testy pokrývajú generovanie ID, snapshot nádoby v šarži, opakované názvy nádob pri vytváraní, úprave a presune šarží, append-only merania, latest-per-type, uzavretie, odkalenie, single aj multi-ciel stáčanie, objemovú bilanciu, kapacitu, lineage a ochranu force delete vrátane kaskádového mazania vína a obnovy dát pri chybe.
 
 ## Hlavné API
 

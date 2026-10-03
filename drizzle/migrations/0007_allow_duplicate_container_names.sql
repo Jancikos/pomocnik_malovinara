@@ -1,0 +1,1 @@
+DROP INDEX `sarze_one_active_per_nazov_nadoby`;

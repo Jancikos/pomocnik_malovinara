@@ -258,14 +258,17 @@ describe('sarza lifecycle services', () => {
     })
   })
 
-  it('odmietne druhú aktívnu šaržu s rovnakým názvom nádoby', async () => {
-    await vytvorSarzu(context.db, 'pivnica-1', { vinoId: 'vino-1', faza: FazaSarze.MUST, nadoba: nadoba('Tank T1'), volume: 100 })
-    expect(() => vytvorSarzu(context.db, 'pivnica-1', {
+  it.each(['Tank T1', 'tank t1'])('vytvorí ďalšiu aktívnu šaržu s opakovaným názvom nádoby %s', async (name) => {
+    const first = await vytvorSarzu(context.db, 'pivnica-1', { vinoId: 'vino-1', faza: FazaSarze.MUST, nadoba: nadoba('Tank T1'), volume: 100 })
+    const second = await vytvorSarzu(context.db, 'pivnica-1', {
       vinoId: 'vino-1',
       faza: FazaSarze.MUST,
-      nadoba: nadoba('tank t1'),
+      nadoba: nadoba(name),
       volume: 80,
-    })).toThrow('aktívnu šaržu')
+    })
+    expect(second.id).not.toBe(first.id)
+    expect(second).toMatchObject({ nadoba: { name }, volume: 80, status: StavSarze.AKTIVNA })
+    expect(await nacitajSarzu(context.db, 'pivnica-1', first.id)).toEqual(first)
   })
 
   it('upraví základné údaje existujúcej šarže', async () => {
@@ -287,17 +290,18 @@ describe('sarza lifecycle services', () => {
     })
   })
 
-  it('pri úprave odmietne názov už obsadenej aktívnej nádoby', async () => {
+  it.each(['Tank T1', 'tank t1'])('pri úprave povolí opakovaný názov nádoby %s', async (name) => {
     const firstId = await vlozSarzu(FazaSarze.MUST, 100, 'Tank T1')
     const secondId = await vlozSarzu(FazaSarze.KVASENIE, 80, 'Tank T2', '2026-IO-KVASENIE-002')
 
-    expect(() => upravZakladSarze(context.db, 'pivnica-1', secondId, {
+    const updated = await upravZakladSarze(context.db, 'pivnica-1', secondId, {
       vinoId: 'vino-1',
       faza: FazaSarze.KVASENIE,
-      nadoba: nadoba('tank t1'),
+      nadoba: nadoba(name),
       volume: 80,
-    })).toThrow('aktívnu šaržu')
-    expect((await nacitajSarzu(context.db, 'pivnica-1', firstId)).nadoba.name).toBe('Tank T1')
+    })
+    expect(updated).toMatchObject({ id: secondId, nadoba: { name }, status: StavSarze.AKTIVNA })
+    expect(await nacitajSarzu(context.db, 'pivnica-1', firstId)).toMatchObject({ nadoba: { name: 'Tank T1' }, volume: 100, status: StavSarze.AKTIVNA })
   })
 
   it('merania iba pridáva a vracia posledné meranie daného typu', async () => {
@@ -565,19 +569,37 @@ describe('presun do pôvodnej nádoby', () => {
     })
   })
 
-  it('pri rozdelení povolí pôvodnú nádobu, ale odmietne nádobu obsadenú inou šaržou', () => {
+  it.each(['Obsadená', 'obsadená'])('pri rozdelení povolí názov nádoby inej aktívnej šarže %s', (name) => {
     const sourceId = vlozSarzu(FazaSarze.ODKALENIE)
-    vlozSarzu(FazaSarze.ZRENIE, 50, 'Obsadená')
+    const otherId = vlozSarzu(FazaSarze.ZRENIE, 50, 'Obsadená')
+    const otherBefore = context.db.select().from(sarze).where(eq(sarze.id, otherId)).get()
     const body = {
       zdrojovaSarzaId: sourceId,
       cielovaFaza: FazaSarze.KVASENIE,
-      ciele: [{ nadoba: nadoba('Zdroj'), volume: 60 }, { nadoba: nadoba('obsadená'), volume: 40 }],
+      ciele: [{ nadoba: nadoba('Zdroj'), volume: 60 }, { nadoba: nadoba(name), volume: 40 }],
     }
-    expect(() => presunSarzu(context.db, kontextPresunu, body)).toThrow('už obsahuje aktívnu šaržu')
-    expect(context.db.select().from(sarze).where(eq(sarze.id, sourceId)).get()?.status).toBe(StavSarze.AKTIVNA)
-    expect(context.db.select().from(presuny).all()).toHaveLength(0)
-    body.ciele[1]!.nadoba.name = 'Voľná'
-    expect(presunSarzu(context.db, kontextPresunu, body).vytvoreneSarzeIds).toHaveLength(2)
+    const result = presunSarzu(context.db, kontextPresunu, body)
+    expect(result.vytvoreneSarzeIds).toHaveLength(2)
+    expect(context.db.select().from(sarze).where(eq(sarze.id, sourceId)).get()?.status).toBe(StavSarze.UZAVRETA)
+    expect(context.db.select().from(sarze).where(eq(sarze.id, result.vytvoreneSarzeIds[1]!)).get()).toMatchObject({ nazovNadoby: name, volume: 40, status: StavSarze.AKTIVNA })
+    expect(context.db.select().from(sarze).where(eq(sarze.id, otherId)).get()).toEqual(otherBefore)
+    expect(context.sqlite.pragma('foreign_key_check')).toEqual([])
+  })
+
+  it('rozdelí šaržu na viac cieľových šarží s úplne rovnakým názvom nádoby', () => {
+    const sourceId = vlozSarzu(FazaSarze.ODKALENIE)
+    const result = presunSarzu(context.db, kontextPresunu, {
+      zdrojovaSarzaId: sourceId,
+      cielovaFaza: FazaSarze.KVASENIE,
+      ciele: [{ nadoba: nadoba('Zdroj'), volume: 60 }, { nadoba: nadoba('Zdroj'), volume: 40 }],
+    })
+    expect(new Set(result.vytvoreneSarzeIds).size).toBe(2)
+    const children = context.db.select().from(sarze).where(eq(sarze.rodicovskaSarzaId, sourceId)).all()
+    expect(children).toHaveLength(2)
+    expect(children.every(child => child.nazovNadoby === 'Zdroj' && child.status === StavSarze.AKTIVNA)).toBe(true)
+    expect(children.reduce((sum, child) => sum + child.volume, 0)).toBe(100)
+    expect(context.db.select().from(cielePresunu).all()).toHaveLength(2)
+    expect(context.sqlite.pragma('foreign_key_check')).toEqual([])
   })
 })
 

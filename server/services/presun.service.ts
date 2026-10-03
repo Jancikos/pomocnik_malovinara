@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { and, desc, eq, ne } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { FazaSarze, StavSarze, TypMerania, TypZasahu, overBilanciuObjemu } from '../../shared/domain'
 import { parseDecimal } from '../../shared/utils/number'
 import type { Database } from '../database/client'
@@ -34,11 +34,6 @@ export function presunSarzu(
   if (typZasahu === TypZasahu.DOSLADZANIE) throw new DomainError('Dosládzanie nevytvára nové šarže.')
   if (typZasahu === TypZasahu.SIRENIE) throw new DomainError('Sírenie nevytvára nové šarže.')
 
-  const cielNames = ciele.map((item) => item.nazovNadoby.toLocaleLowerCase('sk'))
-  if (new Set(cielNames).size !== cielNames.length) {
-    throw new DomainError('Každá cieľová nádoba môže byť uvedená iba raz.')
-  }
-
   const vytvoreneSarzeIds: string[] = []
   const presunId = randomUUID()
   db.transaction((tx) => {
@@ -66,12 +61,6 @@ export function presunSarzu(
 
     const vino = tx.select().from(vina).where(and(eq(vina.id, source.vinoId), eq(vina.pivnicaId, context.pivnicaId))).get()
     if (!vino) notFound('Víno sa nenašlo.')
-
-    const occupiedNames = tx.select({ name: sarze.nazovNadoby }).from(sarze)
-      .where(and(eq(sarze.pivnicaId, context.pivnicaId), eq(sarze.status, StavSarze.AKTIVNA), ne(sarze.id, source.id))).all()
-      .map((item) => item.name.toLocaleLowerCase('sk'))
-    const occupiedTarget = ciele.find((item) => occupiedNames.includes(item.nazovNadoby.toLocaleLowerCase('sk')))
-    if (occupiedTarget) throw new DomainError(`Nádoba ${occupiedTarget.nazovNadoby} už obsahuje aktívnu šaržu.`, 409)
 
     const ids = dalsieIdSarzi(tx as unknown as Database, {
       pivnicaId: context.pivnicaId,

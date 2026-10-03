@@ -43,7 +43,7 @@ Demo autentifikácia sa zachová bez veľkého auth systému: login vytvorí ná
 - `presuny` (zdrojová šarža, strata, cieľová fáza, čas)
 - `ciele_presunov` (presun, objem, vzniknutá šarža; cieľová nádoba je snapshot vo vzniknutej šarži)
 
-Nádoba sa neeviduje samostatne. Každá šarža uchováva jej snapshot a rovnaký názov nádoby môže mať iba jedna aktívna šarža v pivnici. Lineage je zachovaný cez `rodicovskaSarzaId` aj explicitný presun ciel.
+Nádoba sa neeviduje samostatne. Každá šarža uchováva jej snapshot a rovnaký názov nádoby môže mať viacero aktívnych šarží v pivnici. Šarže sa rozlišujú podľa ID. Lineage je zachovaný cez `rodicovskaSarzaId` aj explicitný presun ciel.
 
 ## 6. Migračné kroky
 

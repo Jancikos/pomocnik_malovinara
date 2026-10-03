@@ -103,7 +103,6 @@ export const sarze = sqliteTable('sarze', {
   index('sarze_vino_idx').on(table.vinoId),
   index('sarze_parent_idx').on(table.rodicovskaSarzaId),
   index('sarze_nazov_nadoby_idx').on(table.pivnicaId, table.nazovNadoby),
-  uniqueIndex('sarze_one_active_per_nazov_nadoby').on(table.pivnicaId, table.nazovNadoby).where(sql`${table.status} = 'AKTIVNA'`),
 ])
 
 export const merania = sqliteTable('merania', {
